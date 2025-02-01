@@ -7,58 +7,57 @@ const redis = new Redis({
 })
 
 export const config = {
-  runtime: 'edge',
+  runtime: 'edge'
 }
 
 export default async function handler(request) {
   try {
-    // Get current game state
-    const gameState = await redis.get('gameState') || initializeGameState()
-    
-    // Return state with proper headers for SSE
+    const gameState = await redis.get('gameState')
+
+    if (!gameState) {
+      return new Response(
+        JSON.stringify({
+          sprites: [{
+            id: 'truman',
+            x: 500,
+            y: 500,
+            type: 'TrumanSprite',
+            isUnaware: true,
+            thoughts: [],
+            memories: []
+          }],
+          time: Date.now(),
+          thoughts: [],
+          currentEvent: null,
+          votes: {},
+          activeVoting: false
+        }), 
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive'
+          }
+        }
+      )
+    }
+
     return new Response(JSON.stringify(gameState), {
       headers: {
         'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
         'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-      },
+        'Connection': 'keep-alive'
+      }
     })
   } catch (error) {
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+    return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: {
         'Content-Type': 'application/json',
-      },
-    })
-  }
-}
-
-function initializeGameState() {
-  return {
-    sprites: [
-      {
-        id: 'truman',
-        x: 500,
-        y: 500,
-        type: 'TrumanSprite',
-        isUnaware: true,
-        thoughts: [],
-        memories: [],
-      },
-      {
-        id: 'npc1',
-        x: 300,
-        y: 300,
-        type: 'NPCSprite',
-        isUnaware: false,
-        thoughts: [],
-        memories: [],
+        'Access-Control-Allow-Origin': '*'
       }
-    ],
-    time: Date.now(),
-    thoughts: [],
-    currentEvent: null,
-    votes: {},
-    activeVoting: false,
+    })
   }
 }
