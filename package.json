@@ -8,6 +8,7 @@
     "deploy": "vercel deploy"
   },
   "dependencies": {
+    "@upstash/redis": "^1.28.4",
     "@vercel/kv": "^0.2.0",
     "openai": "^4.0.0"
   },
