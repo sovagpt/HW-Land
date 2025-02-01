@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI World Stream</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; background: #000; }
+        #gameContainer { 
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        .game-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            image-rendering: pixelated;
+        }
+        #thoughtBubble {
+            position: absolute;
+            background: white;
+            border: 2px solid black;
+            border-radius: 15px;
+            padding: 10px;
+            display: none;
+            max-width: 300px;
+            z-index: 10;
+        }
+        #terminal {
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 400px;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            color: #0f0;
+            padding: 10px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        #votePanel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            display: none;
+        }
+        .sprite {
+            position: absolute;
+            transition: transform 1s linear;
+            image-rendering: pixelated;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="mapCanvas" class="game-layer"></canvas>
+        <div id="spriteLayer"></div>
+    </div>
+    <div id="thoughtBubble"></div>
+    <div id="terminal"></div>
+    <div id="votePanel">
+        <h3>Vote on next major event:</h3>
+        <div id="voteOptions"></div>
+    </div>
+
+    <script>
+        let gameState = null;
+        let sprites = new Map();
+        let eventSource = null;
+
+        async function initGame() {
+            // Connect to SSE stream
+            eventSource = new EventSource('/api/stream');
+            eventSource.onmessage = (event) => {
+                const newState = JSON.parse(event.data);
+                updateGameState(newState);
+            };
+
+            // Start update loop
+            setInterval(requestUpdate, 1000);
+        }
+
+        async function requestUpdate() {
+            try {
+                const response = await fetch('/api/update', { method: 'POST' });
+                const newState = await response.json();
+                updateGameState(newState);
+            } catch (error) {
+                console.error('Update error:', error);
+            }
+        }
+
+        function updateGameState(newState) {
+            const oldState = gameState;
+            gameState = newState;
+
+            // Update sprites
+            gameState.sprites.forEach(spriteData => {
+                let sprite = sprites.get(spriteData.id);
+                if (!sprite) {
+                    sprite = createSprite(spriteData);
+                    sprites.set(spriteData.id, sprite);
+                }
+                updateSprite(sprite, spriteData);
+            });
+
+            // Update thoughts
+            if (oldState) {
+                const newThoughts = gameState.thoughts.filter(t => 
+                    !oldState.thoughts.find(ot => 
+                        ot.timestamp === t.timestamp && ot.spriteId === t.spriteId
+                    )
+                );
+                newThoughts.forEach(thought => {
+                    const sprite = sprites.get(thought.spriteId);
+                    if (sprite) {
+                        showThought(sprite, thought.thought);
+                    }
+                });
+            }
+
+            // Update voting panel if needed
+            if (gameState.activeVoting !== (oldState?.activeVoting || false)) {
+                updateVotingPanel();
+            }
+        }
+
+        function createSprite(data) {
+            const sprite = document.createElement('div');
+            sprite.className = 'sprite';
+            sprite.style.width = '32px';
+            sprite.style.height = '32px';
+            sprite.style.backgroundImage = `url(/sprites/${data.type}.png)`;
+            sprite.dataset.type = data.type;
+            document.getElementById('spriteLayer').appendChild(sprite);
+            return sprite;
+        }
+
+        function updateSprite(sprite, data) {
+            sprite.style.transform = `translate(${data.x}px, ${data.y}px)`;
+        }
+
+        function showThought(sprite, thought) {
+            const rect = sprite.getBoundingClientRect();
+            const bubble = document.getElementById('thoughtBubble');
+            bubble.style.left = `${rect.left + 40}px`;
+            bubble.style.top = `${rect.top - 60}px`;
+            bubble.textContent = thought;
+            bubble.style.display = 'block';
+            
+            logToTerminal(`${sprite.dataset.type} thinks: ${thought}`);
+            
+            setTimeout(() => {
+                bubble.style.display = 'none';
+            }, 5000);
+        }
+
+        function logToTerminal(message) {
+            const terminal = document.getElementById('terminal');
+            terminal.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        async function vote(option) {
+            try {
+                await fetch('/api/vote', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ option })
+                });
+            } catch (error) {
+                console.error('Voting error:', error);
+            }
+        }
+
+        function updateVotingPanel() {
+            const panel = document.getElementById('votePanel');
+            if (gameState.activeVoting) {
+                const options = document.getElementById('voteOptions');
+                options.innerHTML = Object.keys(gameState.votes).map(option => `
+                    <div>
+                        <button onclick="vote('${option}')">${option}</button>
+                        <span>${gameState.votes[option] || 0}</span>
+                    </div>
+                `).join('');
+                panel.style.display = 'block';
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+
+        // Start the game
+        initGame();
+    </script>
+</body>
+</html>
