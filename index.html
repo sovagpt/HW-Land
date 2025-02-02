@@ -38,10 +38,10 @@
             image-rendering: crisp-edges;
             position: absolute;
             z-index: 1000;
-            /* Set up for sprite sheet handling */
             overflow: hidden;
             background-repeat: no-repeat;
-            background-size: auto 100%;  /* Height 100%, width auto to maintain aspect ratio */
+            /* The key changes are here */
+            background-size: 768px 160px; /* This should be the full size of your sprite sheet */
             image-rendering: pixelated;
         }
         #thoughtBubble {
@@ -244,16 +244,28 @@
             sprite.style.left = `${data.x}px`;
             sprite.style.top = `${data.y}px`;
             
-            // Initial frame (show first sprite in the sheet)
+            // Show only the first frame (top-left sprite)
             sprite.style.backgroundPosition = '0 0';
             
-            // Optional: Add simple animation
-            let frame = 0;
-            const frameWidth = 32; // Width of each frame
-            setInterval(() => {
-                frame = (frame + 1) % 4; // Cycle through 4 frames
-                sprite.style.backgroundPosition = `${-frame * frameWidth}px 0`;
-            }, 200); // Change frame every 200ms
+            // Animation variables
+            let currentFrame = 0;
+            const SPRITE_WIDTH = 32;
+            const FRAMES_PER_ROW = 24; // Number of sprites in each row
+            
+            // Animation function
+            function updateFrame() {
+                const row = Math.floor(currentFrame / FRAMES_PER_ROW);
+                const col = currentFrame % FRAMES_PER_ROW;
+                const xPos = -(col * SPRITE_WIDTH);
+                const yPos = -(row * SPRITE_WIDTH);
+                sprite.style.backgroundPosition = `${xPos}px ${yPos}px`;
+                
+                // Move to next frame
+                currentFrame = (currentFrame + 1) % 4; // Only use first 4 frames for now
+            }
+            
+            // Start animation
+            setInterval(updateFrame, 200);
             
             document.getElementById('spriteLayer').appendChild(sprite);
             log(`Created animated sprite: ${data.type} at ${data.x},${data.y}`);
