@@ -230,30 +230,41 @@
         function createSprite(data) {
             const sprite = document.createElement('div');
             sprite.className = 'sprite';
-            
-            // Add debugging class
             sprite.classList.add(data.type);
             
             // Set size
-            sprite.style.width = '32px'; // Make bigger for testing
+            sprite.style.width = '32px';
             sprite.style.height = '32px';
             
-            // Set background
+            // Test image loading
+            const img = new Image();
+            img.onload = () => {
+                log(`Sprite image loaded successfully for ${data.type}`);
+                // Set background only after successful load
+                sprite.style.backgroundImage = `url(${img.src})`;
+                sprite.style.border = '1px solid green'; // Success indicator
+            };
+            
+            img.onerror = (error) => {
+                log(`Failed to load sprite image for ${data.type}: ${error}`);
+                sprite.style.border = '1px solid red'; // Error indicator
+            };
+            
+            // Set the image source with full URL
             const imageUrl = `${window.location.origin}/sprites/${data.type}.png`;
-            sprite.style.backgroundImage = `url(${imageUrl})`;
+            img.src = imageUrl;
+            log(`Attempting to load sprite image from: ${imageUrl}`);
             
             // Position
             sprite.style.position = 'absolute';
             sprite.style.left = `${data.x}px`;
             sprite.style.top = `${data.y}px`;
             
-            // Add some temporary visible styling for debugging
-            sprite.style.border = '1px solid red';
-            sprite.style.backgroundColor = 'rgba(255,0,0,0.2)';
+            // Debug info
+            sprite.setAttribute('data-sprite-type', data.type);
+            sprite.setAttribute('data-sprite-id', data.id);
             
             document.getElementById('spriteLayer').appendChild(sprite);
-            log(`Created sprite: ${data.type} at ${data.x},${data.y} with image: ${imageUrl}`);
-            
             return sprite;
         }
 
