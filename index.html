@@ -3,18 +3,36 @@
 <head>
     <title>AI World Stream</title>
     <style>
-        body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; background: #333; }
+        body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
         #gameContainer { 
             position: relative;
             width: 100vw;
             height: 100vh;
-            background: #1a1a1a;
         }
         .game-layer {
             position: absolute;
             top: 0;
             left: 0;
             image-rendering: pixelated;
+        }
+        #mapCanvas {
+            z-index: 1;
+        }
+        #spriteLayer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .sprite {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            image-rendering: pixelated;
+            transition: transform 1s linear;
+            background-repeat: no-repeat;
+            background-size: contain;
         }
         #thoughtBubble {
             position: absolute;
@@ -38,6 +56,7 @@
             overflow-y: auto;
             font-family: monospace;
             font-size: 14px;
+            z-index: 100;
         }
         #votePanel {
             position: fixed;
@@ -47,14 +66,7 @@
             color: white;
             padding: 10px;
             display: none;
-        }
-        .sprite {
-            position: absolute;
-            transition: transform 1s linear;
-            image-rendering: pixelated;
-            width: 32px;
-            height: 32px;
-            background: red; /* Temporary visual for debugging */
+            z-index: 100;
         }
         #debug {
             position: fixed;
@@ -65,13 +77,11 @@
             font-family: monospace;
             background: rgba(0, 0, 0, 0.7);
             padding: 10px;
-            max-height: 300px;
-            overflow-y: auto;
+            display: none;
         }
     </style>
 </head>
 <body>
-    <div id="debug">Game Starting...</div>
     <div id="gameContainer">
         <canvas id="mapCanvas" class="game-layer"></canvas>
         <div id="spriteLayer"></div>
@@ -82,26 +92,51 @@
         <h3>Vote on next major event:</h3>
         <div id="voteOptions"></div>
     </div>
+    <div id="debug"></div>
+
     <script>
         let gameState = null;
         let sprites = new Map();
         let eventSource = null;
+        let mapImage = new Image();
 
         function log(message) {
-            const debug = document.getElementById('debug');
-            debug.innerHTML += `<br>${new Date().toLocaleTimeString()}: ${message}`;
+            const terminal = document.getElementById('terminal');
+            terminal.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+            terminal.scrollTop = terminal.scrollHeight;
             console.log(message);
         }
 
+        async function loadMap() {
+            return new Promise((resolve, reject) => {
+                const mapCtx = document.getElementById('mapCanvas').getContext('2d');
+                mapImage.onload = () => {
+                    const canvas = document.getElementById('mapCanvas');
+                    canvas.width = mapImage.width;
+                    canvas.height = mapImage.height;
+                    mapCtx.drawImage(mapImage, 0, 0);
+                    resolve();
+                };
+                mapImage.onerror = reject;
+                mapImage.src = '/maps/world.png';
+            });
+        }
+
         async function initGame() {
-            log('Game initializing...');
+            log('Loading map...');
             try {
-                // Connect to SSE stream
-                log('Connecting to event stream...');
+                await loadMap();
+                log('Map loaded successfully');
+            } catch (error) {
+                log('Error loading map: ' + error.message);
+            }
+
+            log('Connecting to game server...');
+            try {
                 eventSource = new EventSource('/api/stream');
                 
                 eventSource.onmessage = (event) => {
-                    log('Stream message received');
+                    log('Received state update');
                     const newState = JSON.parse(event.data);
                     updateGameState(newState);
                 };
@@ -110,11 +145,9 @@
                     log('Stream error: ' + JSON.stringify(error));
                 };
 
-                // Start update loop
-                log('Starting update loop');
                 setInterval(requestUpdate, 1000);
             } catch (error) {
-                log('Initialization error: ' + error.message);
+                log('Connection error: ' + error.message);
             }
         }
 
@@ -133,7 +166,6 @@
                 }
                 
                 const newState = await response.json();
-                log('State updated');
                 if (newState) {
                     updateGameState(newState);
                 }
@@ -146,7 +178,6 @@
             const oldState = gameState;
             gameState = newState;
 
-            // Update sprites
             if (gameState.sprites) {
                 gameState.sprites.forEach(spriteData => {
                     let sprite = sprites.get(spriteData.id);
@@ -159,7 +190,6 @@
                 });
             }
 
-            // Update thoughts
             if (oldState && gameState.thoughts) {
                 const newThoughts = gameState.thoughts.filter(t => 
                     !oldState.thoughts.find(ot => 
@@ -174,7 +204,6 @@
                 });
             }
 
-            // Update voting panel if needed
             if (gameState.activeVoting !== (oldState?.activeVoting || false)) {
                 updateVotingPanel();
             }
@@ -183,7 +212,7 @@
         function createSprite(data) {
             const sprite = document.createElement('div');
             sprite.className = 'sprite';
-            sprite.style.backgroundColor = data.isUnaware ? 'red' : 'blue'; // Temporary visual
+            sprite.style.backgroundImage = `url(/sprites/${data.type}.png)`;
             sprite.dataset.type = data.type;
             document.getElementById('spriteLayer').appendChild(sprite);
             return sprite;
@@ -201,26 +230,23 @@
             bubble.textContent = thought;
             bubble.style.display = 'block';
             
-            logToTerminal(`${sprite.dataset.type} thinks: ${thought}`);
+            log(`${sprite.dataset.type} thinks: ${thought}`);
             
             setTimeout(() => {
                 bubble.style.display = 'none';
             }, 5000);
         }
 
-        function logToTerminal(message) {
-            const terminal = document.getElementById('terminal');
-            terminal.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
-            terminal.scrollTop = terminal.scrollHeight;
-        }
-
         async function vote(option) {
             try {
-                await fetch('/api/vote', {
+                const response = await fetch('/api/vote', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ option })
                 });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
             } catch (error) {
                 log('Voting error: ' + error.message);
             }
@@ -242,11 +268,8 @@
             }
         }
 
-        // Start the game when the window loads
-        window.onload = () => {
-            log('Window loaded');
-            initGame();
-        };
+        // Start everything when the window loads
+        window.onload = initGame;
     </script>
 </body>
 </html>
