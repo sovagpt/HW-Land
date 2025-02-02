@@ -10,30 +10,7 @@ export const config = {
   runtime: 'edge'
 }
 
-function isValidPosition(x, y) {
-  // Keep sprites within map bounds
-  if (x < 50 || x > 750 || y < 50 || y > 750) {
-    return false;
-  }
-
-  // Avoid the river area (rough estimate)
-  const riverX = 300;
-  const riverWidth = 100;
-  if (x > riverX && x < riverX + riverWidth) {
-    // Allow crossing at the bridge locations
-    const bridgeY1 = 200;
-    const bridgeY2 = 400;
-    if (!(y > bridgeY1 - 20 && y < bridgeY1 + 20) && 
-        !(y > bridgeY2 - 20 && y < bridgeY2 + 20)) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
 export default async function handler(request) {
-  // Handle CORS preflight request
   if (request.method === 'OPTIONS') {
     return new Response(null, {
       headers: {
@@ -44,14 +21,10 @@ export default async function handler(request) {
     })
   }
 
-  // Only allow POST
   if (request.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
     })
   }
 
@@ -77,35 +50,29 @@ export default async function handler(request) {
       }
     }
 
-    // Update sprite positions
+    // Ensure we have the sprites array
+    if (!gameState.sprites) {
+      gameState.sprites = [];
+    }
+
+    // Update each sprite's position
     gameState.sprites = gameState.sprites.map(sprite => {
-      let newX = sprite.x;
-      let newY = sprite.y;
-      
-      // Try to move the sprite
-      for (let attempts = 0; attempts < 5; attempts++) {
-        // Generate random movement (larger movement range)
-        const deltaX = (Math.random() - 0.5) * 4; // Increased from 2 to 4
-        const deltaY = (Math.random() - 0.5) * 4;
-        
-        const testX = sprite.x + deltaX;
-        const testY = sprite.y + deltaY;
-        
-        if (isValidPosition(testX, testY)) {
-          newX = testX;
-          newY = testY;
-          break;
-        }
-      }
+      // Generate new random position
+      const moveX = (Math.random() - 0.5) * 10; // Larger movement for testing
+      const moveY = (Math.random() - 0.5) * 10;
 
       return {
         ...sprite,
-        x: newX,
-        y: newY
-      }
-    })
+        x: Math.max(50, Math.min(750, sprite.x + moveX)),
+        y: Math.max(50, Math.min(750, sprite.y + moveY))
+      };
+    });
 
-    await redis.set('gameState', gameState)
+    // Update timestamp
+    gameState.time = Date.now();
+
+    // Save the new state
+    await redis.set('gameState', gameState);
 
     return new Response(JSON.stringify(gameState), {
       headers: {
@@ -114,12 +81,10 @@ export default async function handler(request) {
       }
     })
   } catch (error) {
+    console.error('Update error:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
     })
   }
 }
