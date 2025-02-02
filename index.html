@@ -320,6 +320,15 @@
                     }, 5000);
                 };
         
+                log('Setting up update interval');
+                // Clear any existing interval
+                if (window.updateInterval) {
+                    clearInterval(window.updateInterval);
+                }
+                // Set new interval
+                window.updateInterval = setInterval(requestUpdate, 1000);
+                log('Update interval set');
+        
             } catch (error) {
                 log('Connection error: ' + error.message);
             }
@@ -327,6 +336,7 @@
 
         async function requestUpdate() {
             try {
+                log('Requesting state update...');
                 const response = await fetch('/api/update', {
                     method: 'POST',
                     headers: {
@@ -340,11 +350,13 @@
                 }
                 
                 const newState = await response.json();
-                if (newState) {
+                log('Received update response: ' + JSON.stringify(newState));
+                
+                if (newState && newState.sprites) {
                     updateGameState(newState);
                 }
             } catch (error) {
-                log('Update error: ' + error.message);
+                log('Update request error: ' + error.message);
             }
         }
 
