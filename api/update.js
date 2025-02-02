@@ -10,32 +10,21 @@ export const config = {
   runtime: 'edge'
 }
 
-// Helper function to check if a position is valid (not on water/trees)
-function isValidMove(x, y, currentX, currentY) {
-  // Only allow small movements from current position
-  const maxMove = 2;
-  if (Math.abs(x - currentX) > maxMove || Math.abs(y - currentY) > maxMove) {
+function isValidPosition(x, y) {
+  // Keep sprites within map bounds
+  if (x < 50 || x > 750 || y < 50 || y > 750) {
     return false;
   }
 
-  // Define boundaries for the map
-  const mapWidth = 800;
-  const mapHeight = 800;
-  
-  // Keep sprites within map bounds with padding
-  const padding = 32; // Sprite size
-  if (x < padding || x > mapWidth - padding || y < padding || y > mapHeight - padding) {
-    return false;
-  }
-
-  // Define areas to avoid (rough coordinates for water and dense forest)
-  const waterAreas = [
-    { x1: 300, y1: 0, x2: 400, y2: 800 }, // Main river
-  ];
-
-  // Check if position is in water
-  for (const area of waterAreas) {
-    if (x >= area.x1 && x <= area.x2 && y >= area.y1 && y <= area.y2) {
+  // Avoid the river area (rough estimate)
+  const riverX = 300;
+  const riverWidth = 100;
+  if (x > riverX && x < riverX + riverWidth) {
+    // Allow crossing at the bridge locations
+    const bridgeY1 = 200;
+    const bridgeY2 = 400;
+    if (!(y > bridgeY1 - 20 && y < bridgeY1 + 20) && 
+        !(y > bridgeY2 - 20 && y < bridgeY2 + 20)) {
       return false;
     }
   }
@@ -88,28 +77,25 @@ export default async function handler(request) {
       }
     }
 
-    // Update sprite positions with collision detection
+    // Update sprite positions
     gameState.sprites = gameState.sprites.map(sprite => {
-      const moveAttempts = 5; // Try multiple positions if initial ones are invalid
-      let newX, newY;
-      let validMove = false;
-
-      for (let i = 0; i < moveAttempts && !validMove; i++) {
-        // Generate random movement
-        newX = sprite.x + (Math.random() - 0.5) * 2;
-        newY = sprite.y + (Math.random() - 0.5) * 2;
-
-        // Check if move is valid
-        if (isValidMove(newX, newY, sprite.x, sprite.y)) {
-          validMove = true;
+      let newX = sprite.x;
+      let newY = sprite.y;
+      
+      // Try to move the sprite
+      for (let attempts = 0; attempts < 5; attempts++) {
+        // Generate random movement (larger movement range)
+        const deltaX = (Math.random() - 0.5) * 4; // Increased from 2 to 4
+        const deltaY = (Math.random() - 0.5) * 4;
+        
+        const testX = sprite.x + deltaX;
+        const testY = sprite.y + deltaY;
+        
+        if (isValidPosition(testX, testY)) {
+          newX = testX;
+          newY = testY;
           break;
         }
-      }
-
-      // If no valid move found, keep current position
-      if (!validMove) {
-        newX = sprite.x;
-        newY = sprite.y;
       }
 
       return {
