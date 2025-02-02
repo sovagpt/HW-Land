@@ -28,6 +28,8 @@
             width: 100%;
             height: 100%;
             z-index: 2;
+            pointer-events: none;
+            border: 1px solid blue; /* Debug border */
         }
         .sprite {
             width: 32px;
@@ -258,29 +260,44 @@
         async function initGame() {
             log('Starting game initialization...');
             try {
-                log('Loading map...');
                 await loadMap();
                 log('Map loaded successfully');
             } catch (error) {
                 log('Error during map loading: ' + error.message);
-                console.error('Detailed error:', error);
             }
         
             log('Connecting to game server...');
             try {
+                if (eventSource) {
+                    eventSource.close();
+                    log('Closed existing connection');
+                }
+                
                 eventSource = new EventSource('/api/stream');
                 
+                eventSource.onopen = () => {
+                    log('Stream connection opened');
+                };
+                
                 eventSource.onmessage = (event) => {
-                    log('Received state update');
-                    const newState = JSON.parse(event.data);
-                    updateGameState(newState);
+                    try {
+                        const newState = JSON.parse(event.data);
+                        log('Received valid state update');
+                        updateGameState(newState);
+                    } catch (error) {
+                        log('Error parsing state update: ' + error.message);
+                    }
                 };
         
                 eventSource.onerror = (error) => {
-                    log('Stream error: ' + JSON.stringify(error));
+                    log('Stream error details: ' + JSON.stringify(error, Object.getOwnPropertyNames(error)));
+                    // Try to reconnect after a delay
+                    setTimeout(() => {
+                        log('Attempting to reconnect...');
+                        initGame();
+                    }, 5000);
                 };
         
-                setInterval(requestUpdate, 1000);
             } catch (error) {
                 log('Connection error: ' + error.message);
             }
@@ -345,7 +362,9 @@
         }
 
         function updateSprite(sprite, data) {
-            sprite.style.transform = `translate(${data.x}px, ${data.y}px)`;
+            sprite.style.left = `${data.x}px`;
+            sprite.style.top = `${data.y}px`;
+            log(`Updated sprite position to ${data.x},${data.y}`);
         }
 
         function showThought(sprite, thought) {
