@@ -3,9 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "vercel dev",
-    "build": "vercel build",
-    "deploy": "vercel deploy"
+    "dev": "next dev",
+    "start": "next start"
   },
   "dependencies": {
     "@upstash/redis": "^1.28.4",
