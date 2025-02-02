@@ -3,11 +3,12 @@
 <head>
     <title>AI World Stream</title>
     <style>
-        body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; background: #000; }
+        body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; background: #333; }
         #gameContainer { 
             position: relative;
             width: 100vw;
             height: 100vh;
+            background: #1a1a1a;
         }
         .game-layer {
             position: absolute;
@@ -51,10 +52,26 @@
             position: absolute;
             transition: transform 1s linear;
             image-rendering: pixelated;
+            width: 32px;
+            height: 32px;
+            background: red; /* Temporary visual for debugging */
+        }
+        #debug {
+            position: fixed;
+            left: 10px;
+            top: 10px;
+            color: white;
+            z-index: 1000;
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            max-height: 300px;
+            overflow-y: auto;
         }
     </style>
 </head>
 <body>
+    <div id="debug">Game Starting...</div>
     <div id="gameContainer">
         <canvas id="mapCanvas" class="game-layer"></canvas>
         <div id="spriteLayer"></div>
@@ -65,63 +82,85 @@
         <h3>Vote on next major event:</h3>
         <div id="voteOptions"></div>
     </div>
-
     <script>
         let gameState = null;
         let sprites = new Map();
         let eventSource = null;
 
-        async function initGame() {
-            // Connect to SSE stream
-            eventSource = new EventSource('/api/stream');
-            eventSource.onmessage = (event) => {
-                const newState = JSON.parse(event.data);
-                updateGameState(newState);
-            };
+        function log(message) {
+            const debug = document.getElementById('debug');
+            debug.innerHTML += `<br>${new Date().toLocaleTimeString()}: ${message}`;
+            console.log(message);
+        }
 
-            // Start update loop
-            setInterval(requestUpdate, 1000);
+        async function initGame() {
+            log('Game initializing...');
+            try {
+                // Connect to SSE stream
+                log('Connecting to event stream...');
+                eventSource = new EventSource('/api/stream');
+                
+                eventSource.onmessage = (event) => {
+                    log('Stream message received');
+                    const newState = JSON.parse(event.data);
+                    updateGameState(newState);
+                };
+
+                eventSource.onerror = (error) => {
+                    log('Stream error: ' + JSON.stringify(error));
+                };
+
+                // Start update loop
+                log('Starting update loop');
+                setInterval(requestUpdate, 1000);
+            } catch (error) {
+                log('Initialization error: ' + error.message);
+            }
         }
 
         async function requestUpdate() {
-    try {
-        const response = await fetch('/api/update', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ timestamp: Date.now() })
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            try {
+                const response = await fetch('/api/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ timestamp: Date.now() })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const newState = await response.json();
+                log('State updated');
+                if (newState) {
+                    updateGameState(newState);
+                }
+            } catch (error) {
+                log('Update error: ' + error.message);
+            }
         }
-        
-        const newState = await response.json();
-        if (newState) {
-            updateGameState(newState);
-        }
-    } catch (error) {
-        console.error('Update error:', error);
-    }
-}
 
         function updateGameState(newState) {
             const oldState = gameState;
             gameState = newState;
 
             // Update sprites
-            gameState.sprites.forEach(spriteData => {
-                let sprite = sprites.get(spriteData.id);
-                if (!sprite) {
-                    sprite = createSprite(spriteData);
-                    sprites.set(spriteData.id, sprite);
-                }
-                updateSprite(sprite, spriteData);
-            });
+            if (gameState.sprites) {
+                gameState.sprites.forEach(spriteData => {
+                    let sprite = sprites.get(spriteData.id);
+                    if (!sprite) {
+                        sprite = createSprite(spriteData);
+                        sprites.set(spriteData.id, sprite);
+                        log('Created sprite: ' + spriteData.id);
+                    }
+                    updateSprite(sprite, spriteData);
+                });
+            }
 
             // Update thoughts
-            if (oldState) {
+            if (oldState && gameState.thoughts) {
                 const newThoughts = gameState.thoughts.filter(t => 
                     !oldState.thoughts.find(ot => 
                         ot.timestamp === t.timestamp && ot.spriteId === t.spriteId
@@ -144,9 +183,7 @@
         function createSprite(data) {
             const sprite = document.createElement('div');
             sprite.className = 'sprite';
-            sprite.style.width = '32px';
-            sprite.style.height = '32px';
-            sprite.style.backgroundImage = `url(/sprites/${data.type}.png)`;
+            sprite.style.backgroundColor = data.isUnaware ? 'red' : 'blue'; // Temporary visual
             sprite.dataset.type = data.type;
             document.getElementById('spriteLayer').appendChild(sprite);
             return sprite;
@@ -185,7 +222,7 @@
                     body: JSON.stringify({ option })
                 });
             } catch (error) {
-                console.error('Voting error:', error);
+                log('Voting error: ' + error.message);
             }
         }
 
@@ -205,8 +242,11 @@
             }
         }
 
-        // Start the game
-        initGame();
+        // Start the game when the window loads
+        window.onload = () => {
+            log('Window loaded');
+            initGame();
+        };
     </script>
 </body>
 </html>
