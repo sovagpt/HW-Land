@@ -115,7 +115,21 @@
         for (const file of files) {
             try {
                 const response = await fetch(file);
-                log(`${file}: ${response.ok ? 'Found' : 'Not Found'}`);
+                const status = response.status;
+                log(`${file}: ${status} (${response.ok ? 'Found' : 'Not Found'})`);
+                
+                // If it's an image, try to get its dimensions
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const img = new Image();
+                    img.src = URL.createObjectURL(blob);
+                    await new Promise((resolve) => {
+                        img.onload = () => {
+                            log(`${file} dimensions: ${img.width}x${img.height}`);
+                            resolve();
+                        };
+                    });
+                }
             } catch (error) {
                 log(`${file}: Error - ${error.message}`);
             }
