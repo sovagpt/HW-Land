@@ -33,15 +33,33 @@ export default async function handler(request) {
     
     if (!gameState) {
       gameState = {
-        sprites: [{
-          id: 'truman',
-          x: 500,
-          y: 500,
-          type: 'TrumanSprite',
-          isUnaware: true,
-          thoughts: [],
-          memories: []
-        }],
+        sprites: [
+          {
+            id: 'truman',
+            x: 500,
+            y: 500,
+            type: 'TrumanSprite',
+            isUnaware: true,
+            thoughts: [],
+            memories: []
+          },
+          {
+            id: 'npc1',
+            x: 450,
+            y: 450,
+            type: 'NPCSprite',
+            thoughts: [],
+            memories: []
+          },
+          {
+            id: 'npc2',
+            x: 550,
+            y: 550,
+            type: 'NPCSprite',
+            thoughts: [],
+            memories: []
+          }
+        ],
         time: Date.now(),
         thoughts: [],
         currentEvent: null,
@@ -55,16 +73,25 @@ export default async function handler(request) {
       gameState.sprites = [];
     }
 
-    // Update each sprite's position
+    // Update each sprite's position with logging
     gameState.sprites = gameState.sprites.map(sprite => {
-      // Generate new random position
-      const moveX = (Math.random() - 0.5) * 10; // Larger movement for testing
+      // Generate new random position with logging
+      const moveX = (Math.random() - 0.5) * 10;
       const moveY = (Math.random() - 0.5) * 10;
-
+      
+      const newX = Math.max(50, Math.min(750, sprite.x + moveX));
+      const newY = Math.max(50, Math.min(750, sprite.y + moveY));
+      
+      console.log(`Moving sprite ${sprite.id} from (${sprite.x},${sprite.y}) to (${newX},${newY})`);
+      
       return {
         ...sprite,
-        x: Math.max(50, Math.min(750, sprite.x + moveX)),
-        y: Math.max(50, Math.min(750, sprite.y + moveY))
+        x: newX,
+        y: newY,
+        type: sprite.type,
+        isUnaware: sprite.isUnaware,
+        thoughts: sprite.thoughts,
+        memories: sprite.memories
       };
     });
 
@@ -73,6 +100,9 @@ export default async function handler(request) {
 
     // Save the new state
     await redis.set('gameState', gameState);
+
+    // Log the state being sent
+    console.log('Sending updated state:', JSON.stringify(gameState));
 
     return new Response(JSON.stringify(gameState), {
       headers: {
