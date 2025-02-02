@@ -337,14 +337,18 @@
         }
 
         function updateGameState(newState) {
+            log('Received new state: ' + JSON.stringify(newState));
+            
             const oldState = gameState;
             gameState = newState;
         
-            // Clear existing sprites if it's a new update
             if (gameState.sprites) {
-                // Remove sprites that no longer exist
+                log(`Processing ${gameState.sprites.length} sprites`);
+                
+                // Remove old sprites
                 sprites.forEach((sprite, id) => {
                     if (!gameState.sprites.find(s => s.id === id)) {
+                        log(`Removing sprite: ${id}`);
                         sprite.remove();
                         sprites.delete(id);
                     }
@@ -352,14 +356,19 @@
         
                 // Update or create sprites
                 gameState.sprites.forEach(spriteData => {
+                    log(`Processing sprite: ${spriteData.id} at ${spriteData.x},${spriteData.y}`);
                     let sprite = sprites.get(spriteData.id);
                     if (!sprite) {
+                        log(`Creating new sprite: ${spriteData.id}`);
                         sprite = createSprite(spriteData);
                         sprites.set(spriteData.id, sprite);
-                        log('Created sprite: ' + spriteData.id);
+                    } else {
+                        log(`Updating existing sprite: ${spriteData.id}`);
+                        updateSprite(sprite, spriteData);
                     }
-                    updateSprite(sprite, spriteData);
                 });
+            } else {
+                log('No sprites in game state');
             }
         }
 
