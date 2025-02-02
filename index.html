@@ -17,23 +17,28 @@
         }
         #mapCanvas {
             z-index: 1;
-            background: #333; /* Temporary background */
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            -ms-interpolation-mode: nearest-neighbor;
         }
         #spriteLayer {
             position: absolute;
             top: 0;
             left: 0;
+            width: 100%;
+            height: 100%;
             z-index: 2;
-            pointer-events: none;
         }
         .sprite {
-            position: absolute;
-            width: 16px;  /* Changed from 32px to match your tile size */
-            height: 16px; /* Changed from 32px to match your tile size */
+            width: 16px;
+            height: 16px;
             image-rendering: pixelated;
-            transition: transform 1s linear;
+            image-rendering: crisp-edges;
+            -ms-interpolation-mode: nearest-neighbor;
+            position: absolute;
+            transition: transform 0.5s linear;
             background-repeat: no-repeat;
-            background-size: contain;
+            background-size: 100% 100%;
         }
         #thoughtBubble {
             position: absolute;
@@ -131,60 +136,46 @@
         }
 
         async function loadMap() {
-            const canvas = document.getElementById('mapCanvas');
-            const ctx = canvas.getContext('2d');
-            
-            try {
-                const response = await fetch('/maps/world.png');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const blob = await response.blob();
-                const imageUrl = URL.createObjectURL(blob);
+            return new Promise((resolve) => {
+                const canvas = document.getElementById('mapCanvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
                 
-                return new Promise((resolve, reject) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        canvas.width = img.width;
-                        canvas.height = img.height;
-                        ctx.imageSmoothingEnabled = false; // Ensure pixel-perfect rendering
-                        ctx.drawImage(img, 0, 0);
-                        URL.revokeObjectURL(imageUrl);
-                        resolve();
-                    };
-                    img.onerror = (error) => {
-                        log('Map load error details: ' + JSON.stringify(error));
-                        URL.revokeObjectURL(imageUrl);
-                        reject(error);
-                    };
-                    img.src = imageUrl;
-                });
-            } catch (error) {
-                log('Map fetch error: ' + error.message);
-                throw error;
-            }
+                // Disable image smoothing
+                ctx.imageSmoothingEnabled = false;
+                ctx.webkitImageSmoothingEnabled = false;
+                ctx.mozImageSmoothingEnabled = false;
+                
+                img.onload = () => {
+                    log(`Map dimensions: ${img.width} x ${img.height}`);
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                    resolve();
+                };
+        
+                // Load the image directly
+                img.src = 'maps/world.png';
+            });
         }
         
         function createSprite(data) {
             const sprite = document.createElement('div');
             sprite.className = 'sprite';
-            const spriteUrl = `/sprites/${data.type}.png`;
             
-            // Create a new image to test loading
-            const testImg = new Image();
-            testImg.crossOrigin = "anonymous";
-            testImg.onload = () => {
-                sprite.style.backgroundImage = `url(${spriteUrl})`;
-                sprite.style.backgroundColor = 'transparent';
-            };
-            testImg.onerror = () => {
-                log(`Fallback color for: ${data.type}`);
-                sprite.style.backgroundColor = data.isUnaware ? 'red' : 'blue';
-            };
-            testImg.src = spriteUrl;
-        
-            sprite.dataset.type = data.type;
+            // Set sprite size and background
+            sprite.style.width = '16px';
+            sprite.style.height = '16px';
+            sprite.style.backgroundImage = `url(sprites/${data.type}.png)`;
+            
+            // Set position
+            sprite.style.position = 'absolute';
+            sprite.style.transform = `translate(${data.x}px, ${data.y}px)`;
+            
+            // Add to sprite layer
             document.getElementById('spriteLayer').appendChild(sprite);
+            log(`Created sprite: ${data.type} at ${data.x},${data.y}`);
+            
             return sprite;
         }
 
