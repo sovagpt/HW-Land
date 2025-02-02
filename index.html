@@ -37,13 +37,12 @@
             image-rendering: pixelated;
             image-rendering: crisp-edges;
             position: absolute;
-            /* Try different background sizing options */
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-position: center;
             z-index: 1000;
-            /* Add debug outline */
-            outline: 1px solid green;
+            /* Set up for sprite sheet handling */
+            overflow: hidden;
+            background-repeat: no-repeat;
+            background-size: auto 100%;  /* Height 100%, width auto to maintain aspect ratio */
+            image-rendering: pixelated;
         }
         #thoughtBubble {
             position: absolute;
@@ -232,26 +231,33 @@
             const sprite = document.createElement('div');
             sprite.className = 'sprite';
             
-            // Create a nested img element for better control
-            const img = document.createElement('img');
-            img.src = `${window.location.origin}/sprites/${data.type}.png`;
-            img.style.width = '100%';
-            img.style.height = '100%';
-            img.style.imageRendering = 'pixelated';
+            // Set size of the visible sprite
+            sprite.style.width = '32px';
+            sprite.style.height = '32px';
             
-            // Log when image loads
-            img.onload = () => {
-                log(`Sprite image loaded - Natural size: ${img.naturalWidth}x${img.naturalHeight}`);
-            };
+            // Set the sprite sheet as background
+            const imageUrl = `${window.location.origin}/sprites/${data.type}.png`;
+            sprite.style.backgroundImage = `url(${imageUrl})`;
             
-            sprite.appendChild(img);
-            
-            // Position
+            // Position the sprite on screen
             sprite.style.position = 'absolute';
             sprite.style.left = `${data.x}px`;
             sprite.style.top = `${data.y}px`;
             
+            // Initial frame (show first sprite in the sheet)
+            sprite.style.backgroundPosition = '0 0';
+            
+            // Optional: Add simple animation
+            let frame = 0;
+            const frameWidth = 32; // Width of each frame
+            setInterval(() => {
+                frame = (frame + 1) % 4; // Cycle through 4 frames
+                sprite.style.backgroundPosition = `${-frame * frameWidth}px 0`;
+            }, 200); // Change frame every 200ms
+            
             document.getElementById('spriteLayer').appendChild(sprite);
+            log(`Created animated sprite: ${data.type} at ${data.x},${data.y}`);
+            
             return sprite;
         }
 
