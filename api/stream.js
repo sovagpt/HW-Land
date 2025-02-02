@@ -12,50 +12,44 @@ export const config = {
 
 export default async function handler(request) {
   try {
-    const gameState = await redis.get('gameState')
+    let gameState = await redis.get('gameState')
 
     if (!gameState) {
-      return new Response(
-        JSON.stringify({
-          sprites: [{
-            id: 'truman',
-            x: 500,
-            y: 500,
-            type: 'TrumanSprite',
-            isUnaware: true,
-            thoughts: [],
-            memories: []
-          }],
-          time: Date.now(),
+      gameState = {
+        sprites: [{
+          id: 'truman',
+          x: 500,
+          y: 500,
+          type: 'TrumanSprite',
+          isUnaware: true,
           thoughts: [],
-          currentEvent: null,
-          votes: {},
-          activeVoting: false
-        }), 
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-            'Cache-Control': 'no-cache',
-            'Connection': 'keep-alive'
-          }
-        }
-      )
+          memories: []
+        }],
+        time: Date.now(),
+        thoughts: [],
+        currentEvent: null,
+        votes: {},
+        activeVoting: false
+      }
     }
 
-    return new Response(JSON.stringify(gameState), {
+    // Format the response as an SSE message
+    const message = `data: ${JSON.stringify(gameState)}\n\n`;
+
+    return new Response(message, {
       headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive'
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*'
       }
     })
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
+    return new Response(`data: ${JSON.stringify({ error: error.message })}\n\n`, {
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
         'Access-Control-Allow-Origin': '*'
       }
     })
