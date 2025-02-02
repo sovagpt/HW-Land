@@ -30,15 +30,17 @@
             z-index: 2;
         }
         .sprite {
-            width: 16px;
-            height: 16px;
+            width: 32px;
+            height: 32px;
             image-rendering: pixelated;
             image-rendering: crisp-edges;
             -ms-interpolation-mode: nearest-neighbor;
             position: absolute;
             transition: transform 0.5s linear;
             background-repeat: no-repeat;
-            background-size: 100% 100%;
+            background-size: contain;
+            pointer-events: none;
+            z-index: 1000; /* Ensure sprites are above the map */
         }
         #thoughtBubble {
             position: absolute;
@@ -227,18 +229,28 @@
             const sprite = document.createElement('div');
             sprite.className = 'sprite';
             
-            // Set sprite size and background
-            sprite.style.width = '16px';
-            sprite.style.height = '16px';
-            sprite.style.backgroundImage = `url(sprites/${data.type}.png)`;
+            // Add debugging class
+            sprite.classList.add(data.type);
             
-            // Set position
+            // Set size
+            sprite.style.width = '32px'; // Make bigger for testing
+            sprite.style.height = '32px';
+            
+            // Set background
+            const imageUrl = `${window.location.origin}/sprites/${data.type}.png`;
+            sprite.style.backgroundImage = `url(${imageUrl})`;
+            
+            // Position
             sprite.style.position = 'absolute';
-            sprite.style.transform = `translate(${data.x}px, ${data.y}px)`;
+            sprite.style.left = `${data.x}px`;
+            sprite.style.top = `${data.y}px`;
             
-            // Add to sprite layer
+            // Add some temporary visible styling for debugging
+            sprite.style.border = '1px solid red';
+            sprite.style.backgroundColor = 'rgba(255,0,0,0.2)';
+            
             document.getElementById('spriteLayer').appendChild(sprite);
-            log(`Created sprite: ${data.type} at ${data.x},${data.y}`);
+            log(`Created sprite: ${data.type} at ${data.x},${data.y} with image: ${imageUrl}`);
             
             return sprite;
         }
