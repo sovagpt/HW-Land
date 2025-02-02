@@ -133,37 +133,41 @@
 
         async function loadMap() {
             return new Promise((resolve, reject) => {
-                const mapImage = new Image();
-                const mapCanvas = document.getElementById('mapCanvas');
-                const mapCtx = mapCanvas.getContext('2d');
+                const canvas = document.getElementById('mapCanvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
         
-                // Set initial canvas size
-                mapCanvas.width = window.innerWidth;
-                mapCanvas.height = window.innerHeight;
+                // Set crossOrigin to allow loading from Vercel
+                img.crossOrigin = "anonymous";
+                
+                // Set canvas size first
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
         
-                mapImage.onload = () => {
-                    log('Map image loaded successfully: ' + mapImage.width + 'x' + mapImage.height);
-                    mapCanvas.width = mapImage.width;
-                    mapCanvas.height = mapImage.height;
-                    mapCtx.drawImage(mapImage, 0, 0);
+                img.onload = function() {
+                    log(`Map loaded - size: ${img.width}x${img.height}`);
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
                     resolve();
                 };
         
-                mapImage.onerror = (error) => {
-                    // Try to fetch the image directly to see if it exists
+                img.onerror = function(e) {
+                    log('Map load error, trying base64 decode...');
+                    // Try loading the image as a blob
                     fetch('/maps/world.png')
-                        .then(response => {
-                            if (!response.ok) {
-                                log('Map file not found on server');
-                            }
+                        .then(response => response.blob())
+                        .then(blob => {
+                            const url = URL.createObjectURL(blob);
+                            img.src = url;
                         })
-                        .catch(err => log('Error fetching map: ' + err));
-                    log('Error loading map image: ' + JSON.stringify(error));
-                    reject(error);
+                        .catch(error => {
+                            log('Failed to load map: ' + error);
+                            reject(error);
+                        });
                 };
         
-                log('Attempting to load map from: /maps/world.png');
-                mapImage.src = '/maps/world.png';
+                img.src = '/maps/world.png';
             });
         }
         
@@ -171,19 +175,20 @@
             const sprite = document.createElement('div');
             sprite.className = 'sprite';
             const spriteUrl = `/sprites/${data.type}.png`;
-            log(`Loading sprite from: ${spriteUrl}`);
             
-            // Test if sprite image exists
-            fetch(spriteUrl)
-                .then(response => {
-                    if (!response.ok) {
-                        log(`Sprite image not found: ${spriteUrl}`);
-                        sprite.style.backgroundColor = data.isUnaware ? 'red' : 'blue'; // Fallback colors
-                    }
-                })
-                .catch(err => log('Error fetching sprite: ' + err));
-            
-            sprite.style.backgroundImage = `url(${spriteUrl})`;
+            // Create a new image to test loading
+            const testImg = new Image();
+            testImg.crossOrigin = "anonymous";
+            testImg.onload = () => {
+                sprite.style.backgroundImage = `url(${spriteUrl})`;
+                sprite.style.backgroundColor = 'transparent';
+            };
+            testImg.onerror = () => {
+                log(`Fallback color for: ${data.type}`);
+                sprite.style.backgroundColor = data.isUnaware ? 'red' : 'blue';
+            };
+            testImg.src = spriteUrl;
+        
             sprite.dataset.type = data.type;
             document.getElementById('spriteLayer').appendChild(sprite);
             return sprite;
