@@ -8,6 +8,11 @@
             position: relative;
             width: 100vw;
             height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background: #000; /* Black background for any empty space */
         }
         .game-layer {
             position: absolute;
@@ -16,10 +21,11 @@
             image-rendering: pixelated;
         }
         #mapCanvas {
-            z-index: 1;
+            max-width: 100%;
+            max-height: 100vh;
+            object-fit: contain;
             image-rendering: pixelated;
             image-rendering: crisp-edges;
-            -ms-interpolation-mode: nearest-neighbor;
         }
         #spriteLayer {
             position: absolute;
@@ -238,37 +244,25 @@
             // Set the sprite sheet as background
             const imageUrl = `${window.location.origin}/sprites/${data.type}.png`;
             sprite.style.backgroundImage = `url(${imageUrl})`;
+            sprite.style.backgroundSize = '768px 160px'; // Full sprite sheet size
             
             // Position the sprite on screen
             sprite.style.position = 'absolute';
             sprite.style.left = `${data.x}px`;
             sprite.style.top = `${data.y}px`;
             
-            // Show only the first frame (top-left sprite)
-            sprite.style.backgroundPosition = '0 0';
+            // Animation state
+            let frame = 0;
+            const framesPerRow = 24;
+            const frameSize = 32;
             
-            // Animation variables
-            let currentFrame = 0;
-            const SPRITE_WIDTH = 32;
-            const FRAMES_PER_ROW = 24; // Number of sprites in each row
-            
-            // Animation function
-            function updateFrame() {
-                const row = Math.floor(currentFrame / FRAMES_PER_ROW);
-                const col = currentFrame % FRAMES_PER_ROW;
-                const xPos = -(col * SPRITE_WIDTH);
-                const yPos = -(row * SPRITE_WIDTH);
-                sprite.style.backgroundPosition = `${xPos}px ${yPos}px`;
-                
-                // Move to next frame
-                currentFrame = (currentFrame + 1) % 4; // Only use first 4 frames for now
-            }
-            
-            // Start animation
-            setInterval(updateFrame, 200);
-            
-            document.getElementById('spriteLayer').appendChild(sprite);
-            log(`Created animated sprite: ${data.type} at ${data.x},${data.y}`);
+            // Animate walking
+            setInterval(() => {
+                // Use first row (down walking animation)
+                const x = -(frame * frameSize);
+                sprite.style.backgroundPosition = `${x}px 0px`;
+                frame = (frame + 1) % 4; // Use first 4 frames
+            }, 200);
             
             return sprite;
         }
@@ -345,8 +339,18 @@
         function updateGameState(newState) {
             const oldState = gameState;
             gameState = newState;
-
+        
+            // Clear existing sprites if it's a new update
             if (gameState.sprites) {
+                // Remove sprites that no longer exist
+                sprites.forEach((sprite, id) => {
+                    if (!gameState.sprites.find(s => s.id === id)) {
+                        sprite.remove();
+                        sprites.delete(id);
+                    }
+                });
+        
+                // Update or create sprites
                 gameState.sprites.forEach(spriteData => {
                     let sprite = sprites.get(spriteData.id);
                     if (!sprite) {
@@ -357,24 +361,25 @@
                     updateSprite(sprite, spriteData);
                 });
             }
+        }
 
-            if (oldState && gameState.thoughts) {
-                const newThoughts = gameState.thoughts.filter(t => 
-                    !oldState.thoughts.find(ot => 
-                        ot.timestamp === t.timestamp && ot.spriteId === t.spriteId
-                    )
-                );
-                newThoughts.forEach(thought => {
-                    const sprite = sprites.get(thought.spriteId);
-                    if (sprite) {
-                        showThought(sprite, thought.thought);
-                    }
-                });
-            }
-
-            if (gameState.activeVoting !== (oldState?.activeVoting || false)) {
-                updateVotingPanel();
-            }
+        function isValidPosition(x, y) {
+            const canvas = document.getElementById('mapCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Get pixel data at the sprite's position
+            const pixel = ctx.getImageData(x, y, 1, 1).data;
+            
+            // Check if it's water (blue) or trees (dark green)
+            const [r, g, b] = pixel;
+            
+            // Water is typically blue (high blue value)
+            const isWater = b > Math.max(r, g) + 50;
+            
+            // Trees are typically dark green
+            const isDarkGreen = g > r && g > b && g < 150;
+            
+            return !isWater && !isDarkGreen;
         }
 
         function updateSprite(sprite, data) {
