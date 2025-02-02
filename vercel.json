@@ -5,12 +5,32 @@
   "public": true,
   "builds": [
     { "src": "api/*.js", "use": "@vercel/node" },
-    { "src": "*.html", "use": "@vercel/static" }
+    { "src": "*.html", "use": "@vercel/static" },
+    { "src": "public/**/*", "use": "@vercel/static" }
   ],
   "routes": [
     { 
       "src": "/api/(.*)",
       "dest": "/api/$1.js"
+    },
+    {
+      "src": "/maps/(.*)",
+      "dest": "/public/maps/$1",
+      "continue": true
+    },
+    {
+      "src": "/sprites/(.*)",
+      "dest": "/public/sprites/$1",
+      "continue": true
+    },
+    {
+      "src": "/tilesets/(.*)",
+      "dest": "/public/tilesets/$1",
+      "continue": true
+    },
+    {
+      "src": "/(maps|sprites|tilesets)/(.*)",
+      "dest": "/public/$1/$2"
     },
     {
       "handle": "filesystem"
