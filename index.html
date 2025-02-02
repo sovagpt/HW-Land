@@ -37,12 +37,13 @@
             image-rendering: pixelated;
             image-rendering: crisp-edges;
             position: absolute;
-            background-size: 100% 100%;
+            /* Try different background sizing options */
+            background-size: cover;
             background-repeat: no-repeat;
             background-position: center;
             z-index: 1000;
-            /* We can remove the border now that we know it's working */
-            /* border: 1px solid green; */
+            /* Add debug outline */
+            outline: 1px solid green;
         }
         #thoughtBubble {
             position: absolute;
@@ -230,15 +231,20 @@
         function createSprite(data) {
             const sprite = document.createElement('div');
             sprite.className = 'sprite';
-            sprite.classList.add(data.type);
             
-            // Set size
-            sprite.style.width = '32px';
-            sprite.style.height = '32px';
+            // Create a nested img element for better control
+            const img = document.createElement('img');
+            img.src = `${window.location.origin}/sprites/${data.type}.png`;
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.imageRendering = 'pixelated';
             
-            // Set background with full URL
-            const imageUrl = `${window.location.origin}/sprites/${data.type}.png`;
-            sprite.style.backgroundImage = `url(${imageUrl})`;
+            // Log when image loads
+            img.onload = () => {
+                log(`Sprite image loaded - Natural size: ${img.naturalWidth}x${img.naturalHeight}`);
+            };
+            
+            sprite.appendChild(img);
             
             // Position
             sprite.style.position = 'absolute';
