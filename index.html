@@ -35,20 +35,17 @@
             height: 100%;
             z-index: 2;
             pointer-events: none;
-            border: 1px solid blue; /* Debug border */
         }
         .sprite {
             width: 32px;
             height: 32px;
             image-rendering: pixelated;
             image-rendering: crisp-edges;
+            -ms-interpolation-mode: nearest-neighbor;
             position: absolute;
-            z-index: 1000;
             overflow: hidden;
             background-repeat: no-repeat;
-            /* The key changes are here */
-            background-size: 768px 160px; /* This should be the full size of your sprite sheet */
-            image-rendering: pixelated;
+            z-index: 1000;
         }
         #thoughtBubble {
             position: absolute;
@@ -236,6 +233,7 @@
         function createSprite(data) {
             const sprite = document.createElement('div');
             sprite.className = 'sprite';
+            sprite.setAttribute('data-id', data.id);
             
             // Set size of the visible sprite
             sprite.style.width = '32px';
@@ -244,25 +242,35 @@
             // Set the sprite sheet as background
             const imageUrl = `${window.location.origin}/sprites/${data.type}.png`;
             sprite.style.backgroundImage = `url(${imageUrl})`;
-            sprite.style.backgroundSize = '768px 160px'; // Full sprite sheet size
+            
+            // Set background size based on actual sprite sheet dimensions (768x256)
+            sprite.style.backgroundSize = '768px 256px';
             
             // Position the sprite on screen
             sprite.style.position = 'absolute';
             sprite.style.left = `${data.x}px`;
             sprite.style.top = `${data.y}px`;
             
+            // Show first frame (top-left sprite)
+            sprite.style.backgroundPosition = '0 0';
+            
+            // Add debug border
+            sprite.style.border = '1px solid red';
+            
             // Animation state
             let frame = 0;
-            const framesPerRow = 24;
-            const frameSize = 32;
+            const frameWidth = 32; // Width of each frame
+            const framesPerRow = 24; // 768/32 = 24 frames per row
             
             // Animate walking
             setInterval(() => {
-                // Use first row (down walking animation)
-                const x = -(frame * frameSize);
+                const x = -(frame * frameWidth);
                 sprite.style.backgroundPosition = `${x}px 0px`;
-                frame = (frame + 1) % 4; // Use first 4 frames
+                frame = (frame + 1) % 4; // Use first 4 frames for walking animation
             }, 200);
+            
+            document.getElementById('spriteLayer').appendChild(sprite);
+            log(`Created sprite: ${data.type} at ${data.x},${data.y}`);
             
             return sprite;
         }
