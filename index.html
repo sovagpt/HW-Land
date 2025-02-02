@@ -136,26 +136,76 @@
         }
 
         async function loadMap() {
-            return new Promise((resolve) => {
+            return new Promise((resolve, reject) => {
                 const canvas = document.getElementById('mapCanvas');
+                if (!canvas) {
+                    log('Error: Canvas element not found');
+                    reject(new Error('Canvas element not found'));
+                    return;
+                }
+        
+                log('Canvas element found');
                 const ctx = canvas.getContext('2d');
-                const img = new Image();
+                if (!ctx) {
+                    log('Error: Could not get canvas context');
+                    reject(new Error('Could not get canvas context'));
+                    return;
+                }
+        
+                log('Canvas context obtained');
                 
                 // Disable image smoothing
                 ctx.imageSmoothingEnabled = false;
                 ctx.webkitImageSmoothingEnabled = false;
                 ctx.mozImageSmoothingEnabled = false;
                 
+                const img = new Image();
+                
                 img.onload = () => {
-                    log(`Map dimensions: ${img.width} x ${img.height}`);
+                    log('Image loaded successfully');
+                    log(`Image natural dimensions: ${img.naturalWidth} x ${img.naturalHeight}`);
+                    log(`Current canvas dimensions: ${canvas.width} x ${canvas.height}`);
+                    
+                    // Set canvas size
                     canvas.width = img.width;
                     canvas.height = img.height;
-                    ctx.drawImage(img, 0, 0);
-                    resolve();
+                    
+                    log(`New canvas dimensions: ${canvas.width} x ${canvas.height}`);
+                    
+                    try {
+                        ctx.drawImage(img, 0, 0);
+                        log('Image drawn to canvas');
+                        resolve();
+                    } catch (error) {
+                        log(`Error drawing image to canvas: ${error.message}`);
+                        reject(error);
+                    }
                 };
         
-                // Load the image directly
-                img.src = 'maps/world.png';
+                img.onerror = (error) => {
+                    log(`Image load error: ${error}`);
+                    reject(error);
+                };
+        
+                // Add a timeout to detect if the image load is hanging
+                const timeout = setTimeout(() => {
+                    log('Image load timed out after 5 seconds');
+                    reject(new Error('Image load timeout'));
+                }, 5000);
+        
+                img.onloadend = () => {
+                    clearTimeout(timeout);
+                };
+        
+                log('Starting image load...');
+                img.src = `${window.location.origin}/maps/world.png`;
+                log(`Image source set to: ${img.src}`);
+        
+                // Force a load attempt if the image is cached
+                if (img.complete) {
+                    log('Image already cached, triggering onload');
+                    img.onload();
+                }
             });
         }
         
@@ -180,14 +230,16 @@
         }
 
         async function initGame() {
-            log('Loading map...');
+            log('Starting game initialization...');
             try {
+                log('Loading map...');
                 await loadMap();
                 log('Map loaded successfully');
             } catch (error) {
-                log('Error loading map: ' + error.message);
+                log('Error during map loading: ' + error.message);
+                console.error('Detailed error:', error);
             }
-
+        
             log('Connecting to game server...');
             try {
                 eventSource = new EventSource('/api/stream');
@@ -197,11 +249,11 @@
                     const newState = JSON.parse(event.data);
                     updateGameState(newState);
                 };
-
+        
                 eventSource.onerror = (error) => {
                     log('Stream error: ' + JSON.stringify(error));
                 };
-
+        
                 setInterval(requestUpdate, 1000);
             } catch (error) {
                 log('Connection error: ' + error.message);
