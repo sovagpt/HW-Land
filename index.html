@@ -97,6 +97,28 @@
     <div id="debug"></div>
 
     <script>
+
+    window.onload = async () => {
+        log('Checking static files...');
+        
+        const files = [
+            '/maps/world.png',
+            '/sprites/TrumanSprite.png',
+            '/sprites/NPCSprite.png',
+            '/tilesets/tileset.png'
+        ];
+    
+        for (const file of files) {
+            try {
+                const response = await fetch(file);
+                log(`${file}: ${response.ok ? 'Found' : 'Not Found'}`);
+            } catch (error) {
+                log(`${file}: Error - ${error.message}`);
+            }
+        }
+    
+        initGame();
+    };
         let gameState = null;
         let sprites = new Map();
         let eventSource = null;
@@ -128,14 +150,43 @@
                 };
         
                 mapImage.onerror = (error) => {
+                    // Try to fetch the image directly to see if it exists
+                    fetch('/maps/world.png')
+                        .then(response => {
+                            if (!response.ok) {
+                                log('Map file not found on server');
+                            }
+                        })
+                        .catch(err => log('Error fetching map: ' + err));
                     log('Error loading map image: ' + JSON.stringify(error));
                     reject(error);
                 };
         
-                const mapUrl = '/maps/world.png';
-                log('Loading map from: ' + mapUrl);
-                mapImage.src = mapUrl;
+                log('Attempting to load map from: /maps/world.png');
+                mapImage.src = '/maps/world.png';
             });
+        }
+        
+        function createSprite(data) {
+            const sprite = document.createElement('div');
+            sprite.className = 'sprite';
+            const spriteUrl = `/sprites/${data.type}.png`;
+            log(`Loading sprite from: ${spriteUrl}`);
+            
+            // Test if sprite image exists
+            fetch(spriteUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        log(`Sprite image not found: ${spriteUrl}`);
+                        sprite.style.backgroundColor = data.isUnaware ? 'red' : 'blue'; // Fallback colors
+                    }
+                })
+                .catch(err => log('Error fetching sprite: ' + err));
+            
+            sprite.style.backgroundImage = `url(${spriteUrl})`;
+            sprite.dataset.type = data.type;
+            document.getElementById('spriteLayer').appendChild(sprite);
+            return sprite;
         }
 
         async function initGame() {
@@ -223,15 +274,6 @@
             if (gameState.activeVoting !== (oldState?.activeVoting || false)) {
                 updateVotingPanel();
             }
-        }
-
-        function createSprite(data) {
-            const sprite = document.createElement('div');
-            sprite.className = 'sprite';
-            sprite.style.backgroundImage = `url(/sprites/${data.type}.png)`;
-            sprite.dataset.type = data.type;
-            document.getElementById('spriteLayer').appendChild(sprite);
-            return sprite;
         }
 
         function updateSprite(sprite, data) {
