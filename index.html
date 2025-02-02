@@ -4,15 +4,15 @@
     <title>AI World Stream</title>
     <style>
         body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
-        #gameContainer { 
+        #gameContainer {
             position: relative;
             width: 100vw;
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
+            background: #000;
             overflow: hidden;
-            background: #000; /* Black background for any empty space */
         }
         .game-layer {
             position: absolute;
@@ -26,6 +26,8 @@
             object-fit: contain;
             image-rendering: pixelated;
             image-rendering: crisp-edges;
+            image-rendering: pixelated;
+    image-rendering: crisp-edges;
         }
         #spriteLayer {
             position: absolute;
@@ -34,7 +36,6 @@
             width: 100%;
             height: 100%;
             z-index: 2;
-            pointer-events: none;
         }
         .sprite {
             width: 32px;
@@ -46,6 +47,7 @@
             overflow: hidden;
             background-repeat: no-repeat;
             z-index: 1000;
+            /* Remove the debug border */
         }
         #thoughtBubble {
             position: absolute;
@@ -251,27 +253,29 @@
             sprite.style.left = `${data.x}px`;
             sprite.style.top = `${data.y}px`;
             
-            // Show first frame (top-left sprite)
-            sprite.style.backgroundPosition = '0 0';
-            
-            // Add debug border
-            sprite.style.border = '1px solid red';
-            
             // Animation state
             let frame = 0;
-            const frameWidth = 32; // Width of each frame
-            const framesPerRow = 24; // 768/32 = 24 frames per row
+            const FRAME_WIDTH = 32;
+            const FRAMES_PER_ROW = 24; // 768/32 = 24 frames per row
+            let currentRow = 0; // For different walking directions
             
-            // Animate walking
+            // Animate walking - use different rows for different directions
             setInterval(() => {
-                const x = -(frame * frameWidth);
-                sprite.style.backgroundPosition = `${x}px 0px`;
+                // Calculate position in sprite sheet
+                const x = -(frame * FRAME_WIDTH);
+                const y = -(currentRow * FRAME_WIDTH);
+                sprite.style.backgroundPosition = `${x}px ${y}px`;
+                
+                // Increment frame
                 frame = (frame + 1) % 4; // Use first 4 frames for walking animation
+                
+                // Optionally change row/direction periodically
+                if (frame === 0) {
+                    currentRow = (currentRow + 1) % 4; // 4 directions (down, left, right, up)
+                }
             }, 200);
             
             document.getElementById('spriteLayer').appendChild(sprite);
-            log(`Created sprite: ${data.type} at ${data.x},${data.y}`);
-            
             return sprite;
         }
 
