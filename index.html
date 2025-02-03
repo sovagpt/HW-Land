@@ -525,25 +525,22 @@
 const MOVE_AMOUNT = 50;
 
 function moveMap(direction) {
+    const container = document.getElementById('gameContainer');
+    
     switch(direction) {
         case 'up':
-            cameraPosition.y -= MOVE_AMOUNT;
+            container.scrollBy(0, -MOVE_AMOUNT);
             break;
         case 'down':
-            cameraPosition.y += MOVE_AMOUNT;
+            container.scrollBy(0, MOVE_AMOUNT);
             break;
         case 'left':
-            cameraPosition.x -= MOVE_AMOUNT;
+            container.scrollBy(-MOVE_AMOUNT, 0);
             break;
         case 'right':
-            cameraPosition.x += MOVE_AMOUNT;
+            container.scrollBy(MOVE_AMOUNT, 0);
             break;
     }
-    
-    document.getElementById('mapCanvas').style.transform = 
-        `scale(2) translate(${cameraPosition.x}px, ${cameraPosition.y}px)`;
-    document.getElementById('spriteLayer').style.transform = 
-        `translate(${cameraPosition.x}px, ${cameraPosition.y}px)`;
 }
     </script>
 </body>
