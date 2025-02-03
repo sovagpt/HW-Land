@@ -29,34 +29,53 @@ function checkCollision(x, y) {
   return false;
 }
 
-function getDistance(sprite1, sprite2) {
-  return Math.sqrt(
-    Math.pow(sprite2.x - sprite1.x, 2) + 
-    Math.pow(sprite2.y - sprite1.y, 2)
-  );
-}
-
 async function generateDialogue(sprite1, sprite2) {
-  console.log('Generating dialogue between', sprite1.id, 'and', sprite2.id);
-  
-  const prompt = `You are an AI living in a simulated town. You are aware you are AI but must hide this fact from Truman (${sprite2.id === 'truman' ? 'who you are talking to' : 'who lives in town'}). Have a casual conversation that subtly hints at the artificial nature of the world without revealing it. Keep response under 20 words.`;
-  
+  const isTrumanPresent = sprite2.id === 'truman';
+  const prompt = isTrumanPresent ? 
+    `You are an AI talking directly to Truman. He just expressed doubt about reality. Subtly convince him everything is real while hiding that you're AI. Keep response under 20 words.` :
+    `You are an AI discussing Truman with another AI. Express concerns about his growing suspicions. Keep it under 20 words.`;
+
   try {
-    console.log('Sending request to OpenAI with prompt:', prompt);
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 30,
       temperature: 0.7,
     });
-
-    const thought = completion.choices[0].message.content;
-    console.log('Received thought from OpenAI:', thought);
-    return thought;
+    return completion.choices[0].message.content;
   } catch (error) {
-    console.error('Dialogue generation error:', error);
+    console.error('Dialogue error:', error);
     return null;
   }
+}
+
+function calculateMovement(sprite, targetSprite, gameState) {
+  const dx = targetSprite.x - sprite.x;
+  const dy = targetSprite.y - sprite.y;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+  
+  // Idle state handling
+  if (!sprite.state) sprite.state = 'idle';
+  if (!sprite.stateTimer) sprite.stateTimer = 0;
+  
+  sprite.stateTimer--;
+  if (sprite.stateTimer <= 0) {
+    sprite.state = Math.random() < 0.7 ? 'moving' : 'idle';
+    sprite.stateTimer = sprite.state === 'idle' ? 50 : 150;
+  }
+
+  if (sprite.state === 'idle') {
+    return { momentumX: 0, momentumY: 0 };
+  }
+
+  // Movement calculation
+  const targetDistance = sprite.id === 'truman' ? 0 : 80;
+  const strength = (distance - targetDistance) * 0.1;
+  
+  return {
+    momentumX: (sprite.momentumX || 0) * 0.9 + (dx / distance) * strength,
+    momentumY: (sprite.momentumY || 0) * 0.9 + (dy / distance) * strength
+  };
 }
 
 export default async function handler(request) {
@@ -79,7 +98,6 @@ export default async function handler(request) {
 
   try {
     let gameState = await redis.get('gameState')
-    console.log('Current game state:', gameState);
     
     if (!gameState) {
       gameState = {
@@ -128,36 +146,36 @@ export default async function handler(request) {
       gameState.sprites = [];
     }
 
-    const truman = gameState.sprites.find(s => s.id === 'truman');
-    console.log('Found Truman:', truman);
-
+    // Process all sprites
     gameState.sprites = await Promise.all(gameState.sprites.map(async sprite => {
-      console.log('Processing sprite:', sprite.id);
-      
       if (sprite.id === 'truman') {
-        const moveX = (Math.random() - 0.5) * 20;
-        const moveY = (Math.random() - 0.5) * 20;
+        // Random wandering for Truman
+        const { momentumX, momentumY } = calculateMovement(sprite, {
+          x: sprite.x + (Math.random() - 0.5) * 100,
+          y: sprite.y + (Math.random() - 0.5) * 100
+        }, gameState);
         
-        sprite.momentumX = (sprite.momentumX || 0) * 0.8 + moveX * 0.2;
-        sprite.momentumY = (sprite.momentumY || 0) * 0.8 + moveY * 0.2;
+        sprite.momentumX = momentumX;
+        sprite.momentumY = momentumY;
       } else {
-        const dx = truman.x - sprite.x;
-        const dy = truman.y - sprite.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        console.log(`Distance between ${sprite.id} and Truman:`, distance);
+        // NPCs either follow Truman or interact with other NPCs
+        const truman = gameState.sprites.find(s => s.id === 'truman');
+        const otherNPCs = gameState.sprites.filter(s => s.id !== sprite.id && s.id !== 'truman');
+        const targetSprite = Math.random() < 0.3 ? truman : otherNPCs[Math.floor(Math.random() * otherNPCs.length)];
         
-        const targetDistance = 100;
-        const strength = (distance - targetDistance) * 0.1;
+        const { momentumX, momentumY } = calculateMovement(sprite, targetSprite, gameState);
+        sprite.momentumX = momentumX;
+        sprite.momentumY = momentumY;
+
+        // Generate dialogue when close
+        const distance = Math.sqrt(
+          Math.pow(targetSprite.x - sprite.x, 2) + 
+          Math.pow(targetSprite.y - sprite.y, 2)
+        );
         
-        sprite.momentumX = (sprite.momentumX || 0) * 0.8 + (dx / distance) * strength;
-        sprite.momentumY = (sprite.momentumY || 0) * 0.8 + (dy / distance) * strength;
-        
-        if (distance < 80 && Math.random() < 0.1) {
-          console.log('Distance check passed, attempting dialogue');
-          const thought = await generateDialogue(sprite, truman);
-          console.log('Generated thought:', thought);
+        if (distance < 80 && sprite.state === 'idle' && Math.random() < 0.1) {
+          const thought = await generateDialogue(sprite, targetSprite);
           if (thought) {
-            console.log('Adding thought to game state');
             if (!gameState.thoughts) gameState.thoughts = [];
             gameState.thoughts.push({
               spriteId: sprite.id,
@@ -183,12 +201,13 @@ export default async function handler(request) {
         x: newX,
         y: newY,
         momentumX: sprite.momentumX,
-        momentumY: sprite.momentumY
+        momentumY: sprite.momentumY,
+        state: sprite.state,
+        stateTimer: sprite.stateTimer
       };
     }));
 
     gameState.time = Date.now();
-    console.log('Updated game state:', gameState);
     await redis.set('gameState', gameState);
 
     return new Response(JSON.stringify(gameState), {
