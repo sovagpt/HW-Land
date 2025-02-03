@@ -74,7 +74,7 @@ function calculateMovement(sprite, targetSprite, gameState) {
   
   return {
     momentumX: (sprite.momentumX || 0) * 0.9 + (dx / distance) * strength,
-    momentumY: (sprite.momentumX || 0) * 0.9 + (dy / distance) * strength
+    momentumY: (sprite.momentumY || 0) * 0.9 + (dy / distance) * strength
   };
 }
 
