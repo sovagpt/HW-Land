@@ -76,8 +76,8 @@ export default async function handler(request) {
     // Update each sprite's position with logging
     gameState.sprites = gameState.sprites.map(sprite => {
       // Generate new random position with logging
-      const moveX = (Math.random() - 0.5) * 4; // Reduced from 10 to 4
-      const moveY = (Math.random() - 0.5) * 4; // Reduced from 10 to 4
+      const moveX = (Math.random() - 0.5) * 20; // Reduced from 10 to 4
+      const moveY = (Math.random() - 0.5) * 20; // Reduced from 10 to 4
       
       const newX = Math.max(50, Math.min(750, sprite.x + moveX));
       const newY = Math.max(50, Math.min(750, sprite.y + moveY));
