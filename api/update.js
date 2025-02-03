@@ -45,8 +45,10 @@ function calculateMovement(sprite, targetSprite, gameState) {
   
   // Choose new state and target when timer expires
   if (sprite.stateTimer <= 0) {
-    sprite.state = Math.random() < 0.7 ? 'moving' : 'idle';
-    sprite.stateTimer = sprite.state === 'idle' ? 50 : 150;
+    // Much higher chance of being idle
+    sprite.state = Math.random() < 0.2 ? 'moving' : 'idle';
+    // Longer timers - especially for idle state
+    sprite.stateTimer = sprite.state === 'idle' ? 300 : 100;
     
     // For Truman, occasionally choose an NPC to approach
     if (sprite.id === 'truman' && Math.random() < 0.4) {
@@ -160,7 +162,6 @@ export default async function handler(request) {
 
     // Process all sprites
     gameState.sprites = await Promise.all(gameState.sprites.map(async sprite => {
-      // Always process Truman
       if (sprite.id === 'truman') {
         // Random wandering for Truman with occasional NPC targeting
         const targetSprite = sprite.currentTarget || {
@@ -172,11 +173,6 @@ export default async function handler(request) {
         sprite.momentumX = momentumX;
         sprite.momentumY = momentumY;
       } else {
-        // Only update some NPCs each tick for performance
-        if (Math.random() > UPDATE_FREQUENCY) {
-          return sprite; // Skip update this tick
-        }
-        
         // NPCs either follow Truman or interact with other NPCs
         const truman = gameState.sprites.find(s => s.id === 'truman');
         const otherNPCs = gameState.sprites.filter(s => s.id !== sprite.id && s.id !== 'truman');
@@ -185,8 +181,8 @@ export default async function handler(request) {
         const { momentumX, momentumY } = calculateMovement(sprite, targetSprite, gameState);
         sprite.momentumX = momentumX;
         sprite.momentumY = momentumY;
-    
-        // Generate dialogue when close and only if we're processing this NPC this tick
+
+        // Generate dialogue when close
         const distance = Math.sqrt(
           Math.pow(targetSprite.x - sprite.x, 2) + 
           Math.pow(targetSprite.y - sprite.y, 2)
@@ -204,7 +200,7 @@ export default async function handler(request) {
           }
         }
       }
-    
+
       let newX = Math.max(50, Math.min(910, sprite.x + sprite.momentumX));
       let newY = Math.max(50, Math.min(910, sprite.y + sprite.momentumY));
       
@@ -214,7 +210,7 @@ export default async function handler(request) {
         sprite.momentumX = -sprite.momentumX;
         sprite.momentumY = -sprite.momentumY;
       }
-    
+
       return {
         ...sprite,
         x: newX,
