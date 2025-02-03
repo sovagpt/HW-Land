@@ -47,7 +47,7 @@
             overflow: hidden;
             background-repeat: no-repeat;
             z-index: 1000;
-            transition: left 1s linear, top 1s linear;
+            transition: left 0.5s linear, top 0.5s linear;
         }
         #thoughtBubble {
             position: absolute;
@@ -254,7 +254,7 @@
             sprite.style.top = `${data.y}px`;
             
             // Add transition for smooth movement
-            sprite.style.transition = 'left 1s linear, top 1s linear';
+            sprite.style.transition = 'left 0.5s linear, top 0.5s linear';
             
             // Animation state
             let frame = 0;
@@ -267,7 +267,7 @@
                 const y = -(row * 32); // Row height
                 sprite.style.backgroundPosition = `${x}px ${y}px`;
                 frame = (frame + 1) % 4;
-            }, 200);
+            }, 150);
             
             document.getElementById('spriteLayer').appendChild(sprite);
             return sprite;
@@ -440,7 +440,7 @@
             sprite.dataset.animationRow = row;
             
             // Add transition
-            sprite.style.transition = 'left 1s linear, top 1s linear';
+            sprite.style.transition = 'left 0.5s linear, top 0.5s linear';
             
             // Set new position
             sprite.style.left = `${data.x}px`;
