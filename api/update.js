@@ -37,9 +37,12 @@ function getDistance(sprite1, sprite2) {
 }
 
 async function generateDialogue(sprite1, sprite2) {
+  console.log('Generating dialogue between', sprite1.id, 'and', sprite2.id);
+  
   const prompt = `You are an AI living in a simulated town. You are aware you are AI but must hide this fact from Truman (${sprite2.id === 'truman' ? 'who you are talking to' : 'who lives in town'}). Have a casual conversation that subtly hints at the artificial nature of the world without revealing it. Keep response under 20 words.`;
   
   try {
+    console.log('Sending request to OpenAI with prompt:', prompt);
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [{ role: "user", content: prompt }],
@@ -47,7 +50,9 @@ async function generateDialogue(sprite1, sprite2) {
       temperature: 0.7,
     });
 
-    return completion.choices[0].message.content;
+    const thought = completion.choices[0].message.content;
+    console.log('Received thought from OpenAI:', thought);
+    return thought;
   } catch (error) {
     console.error('Dialogue generation error:', error);
     return null;
@@ -74,6 +79,7 @@ export default async function handler(request) {
 
   try {
     let gameState = await redis.get('gameState')
+    console.log('Current game state:', gameState);
     
     if (!gameState) {
       gameState = {
@@ -123,32 +129,36 @@ export default async function handler(request) {
     }
 
     const truman = gameState.sprites.find(s => s.id === 'truman');
+    console.log('Found Truman:', truman);
 
-    // Update sprite positions
     gameState.sprites = await Promise.all(gameState.sprites.map(async sprite => {
+      console.log('Processing sprite:', sprite.id);
+      
       if (sprite.id === 'truman') {
-        // Random movement for Truman
         const moveX = (Math.random() - 0.5) * 20;
         const moveY = (Math.random() - 0.5) * 20;
         
         sprite.momentumX = (sprite.momentumX || 0) * 0.8 + moveX * 0.2;
         sprite.momentumY = (sprite.momentumY || 0) * 0.8 + moveY * 0.2;
       } else {
-        // NPCs move towards Truman while maintaining distance
         const dx = truman.x - sprite.x;
         const dy = truman.y - sprite.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
+        console.log(`Distance between ${sprite.id} and Truman:`, distance);
         
-        const targetDistance = 100; // Desired orbit distance
+        const targetDistance = 100;
         const strength = (distance - targetDistance) * 0.1;
         
         sprite.momentumX = (sprite.momentumX || 0) * 0.8 + (dx / distance) * strength;
         sprite.momentumY = (sprite.momentumY || 0) * 0.8 + (dy / distance) * strength;
         
-        // Generate dialogue if close enough
-        if (distance < 80 && Math.random() < 0.1) { // 10% chance when close
+        if (distance < 80 && Math.random() < 0.1) {
+          console.log('Distance check passed, attempting dialogue');
           const thought = await generateDialogue(sprite, truman);
+          console.log('Generated thought:', thought);
           if (thought) {
+            console.log('Adding thought to game state');
+            if (!gameState.thoughts) gameState.thoughts = [];
             gameState.thoughts.push({
               spriteId: sprite.id,
               thought,
@@ -178,6 +188,7 @@ export default async function handler(request) {
     }));
 
     gameState.time = Date.now();
+    console.log('Updated game state:', gameState);
     await redis.set('gameState', gameState);
 
     return new Response(JSON.stringify(gameState), {
