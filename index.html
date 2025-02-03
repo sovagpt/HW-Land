@@ -524,6 +524,9 @@
         let cameraPosition = { x: 0, y: 0 };
 const MOVE_AMOUNT = 50;
 
+let cameraPosition = { x: 0, y: 0 };
+const MOVE_AMOUNT = 50;
+
 function moveMap(direction) {
     switch(direction) {
         case 'up':
@@ -540,14 +543,11 @@ function moveMap(direction) {
             break;
     }
     
-    const container = document.getElementById('gameContainer');
-    container.scrollTo(-cameraPosition.x, -cameraPosition.y);
-}
-    
+    // Update both map and sprite layer positions
     document.getElementById('mapCanvas').style.transform = 
-        `scale(2) translate(${mapPosition.x}px, ${mapPosition.y}px)`;
+        `scale(2) translate(${cameraPosition.x}px, ${cameraPosition.y}px)`;
     document.getElementById('spriteLayer').style.transform = 
-        `translate(${mapPosition.x}px, ${mapPosition.y}px)`;
+        `translate(${cameraPosition.x}px, ${cameraPosition.y}px)`;
 }
     </script>
 </body>
