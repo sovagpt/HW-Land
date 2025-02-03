@@ -204,14 +204,21 @@ export default async function handler(request) {
           const thought = await generateDialogue(sprite, targetSprite);
           if (thought) {
             if (!gameState.thoughts) gameState.thoughts = [];
-            gameState.thoughts.push({
+            if (!sprite.thoughts) sprite.thoughts = [];
+            
+            const newThought = {
               spriteId: sprite.id,
               thought,
               timestamp: Date.now()
-            });
+            };
+            
+            gameState.thoughts.push(newThought);
+            sprite.thoughts.push(newThought);
+            
+            // Keep last 50 thoughts for each
+            if (gameState.thoughts.length > 50) gameState.thoughts = gameState.thoughts.slice(-50);
+            if (sprite.thoughts.length > 10) sprite.thoughts = sprite.thoughts.slice(-10);
           }
-        }
-      }
 
       let newX = Math.max(50, Math.min(910, sprite.x + sprite.momentumX));
       let newY = Math.max(50, Math.min(910, sprite.y + sprite.momentumY));
