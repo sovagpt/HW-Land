@@ -219,6 +219,8 @@ export default async function handler(request) {
             if (gameState.thoughts.length > 50) gameState.thoughts = gameState.thoughts.slice(-50);
             if (sprite.thoughts.length > 10) sprite.thoughts = sprite.thoughts.slice(-10);
           }
+        }
+      }
 
       let newX = Math.max(50, Math.min(910, sprite.x + sprite.momentumX));
       let newY = Math.max(50, Math.min(910, sprite.y + sprite.momentumY));
@@ -238,7 +240,8 @@ export default async function handler(request) {
         momentumY: sprite.momentumY,
         state: sprite.state,
         stateTimer: sprite.stateTimer,
-        currentTarget: sprite.currentTarget
+        currentTarget: sprite.currentTarget,
+        thoughts: sprite.thoughts
       };
     }));
 
