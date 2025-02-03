@@ -564,14 +564,15 @@ function getNPCDescription(id) {
     return descriptions[id] || "A mysterious resident of the town.";
 }
 
-        async function initGame() {
-            log('Starting game initialization...');
-            try {
-                await loadMap();
-                log('Map loaded successfully');
-            } catch (error) {
-                log('Error during map loading: ' + error.message);
-            }
+async function initGame() {
+    log('Starting game initialization...');
+    try {
+        await loadMap();
+        log('Map loaded successfully');
+        initMinimap(); // Move it here instead of the timeout
+    } catch (error) {
+        log('Error during map loading: ' + error.message);
+    }
         
             log('Connecting to game server...');
             try {
