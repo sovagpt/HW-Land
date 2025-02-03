@@ -81,21 +81,35 @@ function calculateMovement(sprite, targetSprite, gameState) {
 }
 
 async function generateDialogue(sprite1, sprite2) {
+  console.log('Generating dialogue between', sprite1.id, 'and', sprite2.id);
+  
   const isTrumanPresent = sprite2.id === 'truman';
+  const recentThoughts = sprite2.thoughts?.slice(-3) || [];
+  const context = recentThoughts.length > 0 
+    ? `Recent thoughts: ${recentThoughts.join('. ')}` 
+    : '';
+
   const prompt = isTrumanPresent ? 
-    `You are an AI talking directly to Truman. He just expressed doubt about reality. Subtly convince him everything is real while hiding that you're AI. Keep response under 20 words.` :
-    `You are an AI discussing Truman with another AI. Express concerns about his growing suspicions. Keep it under 20 words.`;
+    `You are an AI named ${sprite1.id} talking to Truman. ${context}
+     Truman seems suspicious of reality. Naturally reassure him while hiding that you're AI.
+     Respond in first person, max 20 words.` :
+    `You are an AI named ${sprite1.id} talking to ${sprite2.id} about Truman. ${context}
+     Discuss concerns about Truman's growing suspicions.
+     Respond in first person, max 20 words.`;
 
   try {
+    console.log('Sending OpenAI request with prompt:', prompt);
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 30,
       temperature: 0.7,
     });
-    return completion.choices[0].message.content;
+    const thought = completion.choices[0].message.content;
+    console.log('Received thought:', thought);
+    return thought;
   } catch (error) {
-    console.error('Dialogue error:', error);
+    console.error('Dialogue generation error:', error);
     return null;
   }
 }
