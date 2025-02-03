@@ -167,14 +167,14 @@
     };
 
     window.addEventListener('load', () => {
-   const controls = `
-   <div id="controls">
-       <button class="control-btn" onclick="moveMap('up')">↑</button><br>
-       <button class="control-btn" onclick="moveMap('left')">←</button>
-       <button class="control-btn" onclick="moveMap('right')">→</button><br>
-       <button class="control-btn" onclick="moveMap('down')">↓</button>
-   </div>`;
-   document.body.insertAdjacentHTML('beforeend', controls);
+    const controls = `
+    <div id="controls">
+        <button class="control-btn" onclick="moveMap('up')">↑</button><br>
+        <button class="control-btn" onclick="moveMap('left')">←</button>
+        <button class="control-btn" onclick="moveMap('right')">→</button><br>
+        <button class="control-btn" onclick="moveMap('down')">↓</button>
+    </div>`;
+    document.body.insertAdjacentHTML('beforeend', controls);
 });
         let gameState = null;
         let sprites = new Map();
@@ -526,33 +526,31 @@
         let cameraPosition = { x: 0, y: 0 };
 const MOVE_AMOUNT = 50;
 
-let cameraPosition = { x: 0, y: 0 };
-const MOVE_AMOUNT = 50;
-
 function moveMap(direction) {
-   switch(direction) {
-       case 'up':
-           cameraPosition.y -= MOVE_AMOUNT;
-           break;
-       case 'down':
-           cameraPosition.y += MOVE_AMOUNT;
-           break;
-       case 'left':
-           cameraPosition.x -= MOVE_AMOUNT;
-           break;
-       case 'right':
-           cameraPosition.x += MOVE_AMOUNT;
-           break;
-   }
-   
-   // Move both map and sprite layer together
-   const map = document.getElementById('mapCanvas');
-   const spriteLayer = document.getElementById('spriteLayer');
-   
-   map.style.transform = `scale(2) translate(${cameraPosition.x}px, ${cameraPosition.y}px)`;
-   spriteLayer.style.transform = `scale(2) translate(${cameraPosition.x}px, ${cameraPosition.y}px)`;
+    switch(direction) {
+        case 'up':
+            cameraPosition.y -= MOVE_AMOUNT;
+            break;
+        case 'down':
+            cameraPosition.y += MOVE_AMOUNT;
+            break;
+        case 'left':
+            cameraPosition.x -= MOVE_AMOUNT;
+            break;
+        case 'right':
+            cameraPosition.x += MOVE_AMOUNT;
+            break;
+    }
+    
+    const container = document.getElementById('gameContainer');
+    container.scrollTo(-cameraPosition.x, -cameraPosition.y);
 }
-
+    
+    document.getElementById('mapCanvas').style.transform = 
+        `scale(2) translate(${mapPosition.x}px, ${mapPosition.y}px)`;
+    document.getElementById('spriteLayer').style.transform = 
+        `translate(${mapPosition.x}px, ${mapPosition.y}px)`;
+}
     </script>
 </body>
 </html>
