@@ -131,26 +131,16 @@ export default async function handler(request) {
             momentumX: 0,
             momentumY: 0
           },
-          {
-            id: 'npc1',
-            x: 450,
-            y: 450,
+          ...Array.from({ length: 17 }, (_, i) => ({
+            id: `npc${i + 1}`,
+            x: Math.random() * 800 + 50,
+            y: Math.random() * 800 + 50,
             type: 'NPCSprite',
             thoughts: [],
             memories: [],
             momentumX: 0,
             momentumY: 0
-          },
-          {
-            id: 'npc2',
-            x: 550,
-            y: 550,
-            type: 'NPCSprite',
-            thoughts: [],
-            memories: [],
-            momentumX: 0,
-            momentumY: 0
-          }
+          }))
         ],
         time: Date.now(),
         thoughts: [],
@@ -192,7 +182,7 @@ export default async function handler(request) {
           Math.pow(targetSprite.y - sprite.y, 2)
         );
         
-        if (distance < 80 && sprite.state === 'idle' && Math.random() < 0.1) {
+        if (distance < 80 && sprite.state === 'idle' && Math.random() < 0.3) {
           const thought = await generateDialogue(sprite, targetSprite);
           if (thought) {
             if (!gameState.thoughts) gameState.thoughts = [];
