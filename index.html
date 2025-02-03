@@ -57,6 +57,60 @@
             image-rendering: pixelated;
     image-rendering: crisp-edges;
         }
+        #minimap-container {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 8px;
+            z-index: 2000;
+        }
+        
+        #minimap {
+            width: 150px;
+            height: 150px;
+            background: #98FB98;  /* Light green background */
+            border: 2px solid #333;
+            margin-bottom: 10px;
+            image-rendering: pixelated;
+        }
+        .nav-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    width: 150px;
+}
+
+.nav-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    border: none;
+    background: #555;
+    color: white;
+    cursor: pointer;
+    image-rendering: pixelated;
+    font-family: 'Press Start 2P', monospace;
+    border: 2px solid #333;
+}
+
+.nav-btn:hover {
+    background: #666;
+}
+
+.nav-btn:active {
+    background: #444;
+}
+        
+        #player-position {
+            width: 8px;
+            height: 8px;
+            background: red;
+            position: absolute;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
         #spriteLayer {
             position: absolute;
             top: 0;
@@ -252,15 +306,48 @@
     };
 
     window.addEventListener('load', () => {
-    const controls = `
-    <div id="controls">
-        <button class="control-btn" onclick="moveMap('up')">↑</button><br>
-        <button class="control-btn" onclick="moveMap('left')">←</button>
-        <button class="control-btn" onclick="moveMap('right')">→</button><br>
-        <button class="control-btn" onclick="moveMap('down')">↓</button>
-    </div>`;
-    document.body.insertAdjacentHTML('beforeend', controls);
-});
+        const minimapContainer = `
+        <div id="minimap-container">
+            <div id="minimap">
+                <div id="player-position"></div>
+            </div>
+            <div class="nav-buttons">
+                <div></div>
+                <button class="nav-btn" onclick="moveMap('up')">↑</button>
+                <div></div>
+                <button class="nav-btn" onclick="moveMap('left')">←</button>
+                <div></div>
+                <button class="nav-btn" onclick="moveMap('right')">→</button>
+                <div></div>
+                <button class="nav-btn" onclick="moveMap('down')">↓</button>
+                <div></div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', minimapContainer);
+    
+        // Update minimap position
+        const container = document.getElementById('gameContainer');
+        const playerPosition = document.getElementById('player-position');
+    
+        container.addEventListener('scroll', () => {
+            const scrollX = container.scrollLeft;
+            const scrollY = container.scrollTop;
+            const maxScrollX = container.scrollWidth - container.clientWidth;
+            const maxScrollY = container.scrollHeight - container.clientHeight;
+    
+            // Calculate relative position (0 to 1)
+            const relativeX = scrollX / maxScrollX;
+            const relativeY = scrollY / maxScrollY;
+    
+            // Convert to minimap position
+            const minimap = document.getElementById('minimap');
+            const minimapX = relativeX * (minimap.clientWidth - 8);
+            const minimapY = relativeY * (minimap.clientHeight - 8);
+    
+            playerPosition.style.left = minimapX + 'px';
+            playerPosition.style.top = minimapY + 'px';
+        });
+    });
         let gameState = null;
         let sprites = new Map();
         let eventSource = null;
@@ -639,22 +726,6 @@ function showThought(spriteId, thought) {
     sprite.style.left = `${data.x}px`;
     sprite.style.top = `${data.y}px`;
 }
-        
-
-        function showThought(sprite, thought) {
-            const rect = sprite.getBoundingClientRect();
-            const bubble = document.getElementById('thoughtBubble');
-            bubble.style.left = `${rect.left + 40}px`;
-            bubble.style.top = `${rect.top - 60}px`;
-            bubble.textContent = thought;
-            bubble.style.display = 'block';
-            
-            log(`${sprite.dataset.type} thinks: ${thought}`);
-            
-            setTimeout(() => {
-                bubble.style.display = 'none';
-            }, 5000);
-        }
 
         async function vote(option) {
             try {
