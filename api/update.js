@@ -29,6 +29,53 @@ function checkCollision(x, y) {
   return false;
 }
 
+function calculateMovement(sprite, targetSprite, gameState) {
+  const dx = targetSprite.x - sprite.x;
+  const dy = targetSprite.y - sprite.y;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+  
+  if (!sprite.state) sprite.state = 'idle';
+  if (!sprite.stateTimer) sprite.stateTimer = 0;
+  if (!sprite.currentTarget) sprite.currentTarget = null;
+  
+  sprite.stateTimer--;
+  
+  // Choose new state and target when timer expires
+  if (sprite.stateTimer <= 0) {
+    sprite.state = Math.random() < 0.7 ? 'moving' : 'idle';
+    sprite.stateTimer = sprite.state === 'idle' ? 50 : 150;
+    
+    // For Truman, occasionally choose an NPC to approach
+    if (sprite.id === 'truman' && Math.random() < 0.4) {
+      const npcs = gameState.sprites.filter(s => s.id !== 'truman');
+      sprite.currentTarget = npcs[Math.floor(Math.random() * npcs.length)];
+    }
+  }
+
+  if (sprite.state === 'idle') {
+    return { momentumX: 0, momentumY: 0 };
+  }
+
+  // If Truman has a target, move towards it
+  if (sprite.id === 'truman' && sprite.currentTarget) {
+    const targetDx = sprite.currentTarget.x - sprite.x;
+    const targetDy = sprite.currentTarget.y - sprite.y;
+    const targetDist = Math.sqrt(targetDx * targetDx + targetDy * targetDy);
+    return {
+      momentumX: (sprite.momentumX || 0) * 0.9 + (targetDx / targetDist) * 2,
+      momentumY: (sprite.momentumY || 0) * 0.9 + (targetDy / targetDist) * 2
+    };
+  }
+
+  const targetDistance = sprite.id === 'truman' ? 0 : 80;
+  const strength = (distance - targetDistance) * 0.1;
+  
+  return {
+    momentumX: (sprite.momentumX || 0) * 0.9 + (dx / distance) * strength,
+    momentumY: (sprite.momentumY || 0) * 0.9 + (dy / distance) * strength
+  };
+}
+
 async function generateDialogue(sprite1, sprite2) {
   const isTrumanPresent = sprite2.id === 'truman';
   const prompt = isTrumanPresent ? 
@@ -47,35 +94,6 @@ async function generateDialogue(sprite1, sprite2) {
     console.error('Dialogue error:', error);
     return null;
   }
-}
-
-function calculateMovement(sprite, targetSprite, gameState) {
-  const dx = targetSprite.x - sprite.x;
-  const dy = targetSprite.y - sprite.y;
-  const distance = Math.sqrt(dx * dx + dy * dy);
-  
-  // Idle state handling
-  if (!sprite.state) sprite.state = 'idle';
-  if (!sprite.stateTimer) sprite.stateTimer = 0;
-  
-  sprite.stateTimer--;
-  if (sprite.stateTimer <= 0) {
-    sprite.state = Math.random() < 0.7 ? 'moving' : 'idle';
-    sprite.stateTimer = sprite.state === 'idle' ? 50 : 150;
-  }
-
-  if (sprite.state === 'idle') {
-    return { momentumX: 0, momentumY: 0 };
-  }
-
-  // Movement calculation
-  const targetDistance = sprite.id === 'truman' ? 0 : 80;
-  const strength = (distance - targetDistance) * 0.1;
-  
-  return {
-    momentumX: (sprite.momentumX || 0) * 0.9 + (dx / distance) * strength,
-    momentumY: (sprite.momentumY || 0) * 0.9 + (dy / distance) * strength
-  };
 }
 
 export default async function handler(request) {
@@ -149,12 +167,13 @@ export default async function handler(request) {
     // Process all sprites
     gameState.sprites = await Promise.all(gameState.sprites.map(async sprite => {
       if (sprite.id === 'truman') {
-        // Random wandering for Truman
-        const { momentumX, momentumY } = calculateMovement(sprite, {
+        // Random wandering for Truman with occasional NPC targeting
+        const targetSprite = sprite.currentTarget || {
           x: sprite.x + (Math.random() - 0.5) * 100,
           y: sprite.y + (Math.random() - 0.5) * 100
-        }, gameState);
+        };
         
+        const { momentumX, momentumY } = calculateMovement(sprite, targetSprite, gameState);
         sprite.momentumX = momentumX;
         sprite.momentumY = momentumY;
       } else {
@@ -203,7 +222,8 @@ export default async function handler(request) {
         momentumX: sprite.momentumX,
         momentumY: sprite.momentumY,
         state: sprite.state,
-        stateTimer: sprite.stateTimer
+        stateTimer: sprite.stateTimer,
+        currentTarget: sprite.currentTarget
       };
     }));
 
