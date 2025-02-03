@@ -84,18 +84,24 @@ async function generateDialogue(sprite1, sprite2) {
   console.log('Generating dialogue between', sprite1.id, 'and', sprite2.id);
   
   const isTrumanPresent = sprite2.id === 'truman';
-  const recentThoughts = sprite2.thoughts?.slice(-3) || [];
+  const recentThoughts = sprite2.conversations?.slice(-3) || [];
   const context = recentThoughts.length > 0 
-    ? `Recent thoughts: ${recentThoughts.join('. ')}` 
+    ? `Recent conversation: ${recentThoughts.map(c => `${c.speaker}: ${c.content}`).join('. ')}` 
     : '';
 
-  const prompt = isTrumanPresent ? 
-    `You are an AI named ${sprite1.id} talking to Truman. ${context}
-     Truman seems suspicious of reality. Naturally reassure him while hiding that you're AI.
-     Respond in first person, max 20 words.` :
-    `You are an AI named ${sprite1.id} talking to ${sprite2.id} about Truman. ${context}
-     Discuss concerns about Truman's growing suspicions.
-     Respond in first person, max 20 words.`;
+  let prompt;
+  if (isTrumanPresent) {
+    prompt = `You are an AI named ${sprite1.id} having a casual conversation with Truman. ${context}
+     If Truman seems suspicious of reality, naturally reassure him while hiding that you're AI.
+     If not, just have a friendly chat about daily life in the town.
+     Respond as if speaking directly to him, max 20 words.`;
+  } else {
+    prompt = `You are an AI named ${sprite1.id} talking quietly with ${sprite2.id} about Truman.
+     You're both AIs who know the truth but must keep Truman unaware.
+     ${context}
+     Have a whispered conversation about managing Truman's growing suspicions or maintaining the illusion.
+     Respond as if speaking directly to ${sprite2.id}, max 20 words.`;
+  }
 
   try {
     console.log('Sending OpenAI request with prompt:', prompt);
@@ -105,9 +111,15 @@ async function generateDialogue(sprite1, sprite2) {
       max_tokens: 30,
       temperature: 0.7,
     });
-    const thought = completion.choices[0].message.content;
-    console.log('Received thought:', thought);
-    return thought;
+    const dialogue = completion.choices[0].message.content;
+    console.log('Received dialogue:', dialogue);
+    
+    return {
+      speaker: sprite1.id,
+      listener: sprite2.id,
+      content: dialogue,
+      timestamp: Date.now()
+    };
   } catch (error) {
     console.error('Dialogue generation error:', error);
     return null;
@@ -145,6 +157,7 @@ export default async function handler(request) {
             type: 'TrumanSprite',
             isUnaware: true,
             thoughts: [],
+            conversations: [],
             memories: [],
             momentumX: 0,
             momentumY: 0
@@ -155,6 +168,7 @@ export default async function handler(request) {
             y: Math.random() * 800 + 50,
             type: 'NPCSprite',
             thoughts: [],
+            conversations: [],
             memories: [],
             momentumX: 0,
             momentumY: 0
@@ -162,6 +176,7 @@ export default async function handler(request) {
         ],
         time: Date.now(),
         thoughts: [],
+        conversations: [],
         currentEvent: null,
         votes: {},
         activeVoting: false
@@ -201,23 +216,34 @@ export default async function handler(request) {
         );
         
         if (distance < 80 && sprite.state === 'idle' && Math.random() < 0.3) {
-          const thought = await generateDialogue(sprite, targetSprite);
-          if (thought) {
-            if (!gameState.thoughts) gameState.thoughts = [];
-            if (!sprite.thoughts) sprite.thoughts = [];
+          const dialogue = await generateDialogue(sprite, targetSprite);
+          if (dialogue) {
+            if (!gameState.conversations) gameState.conversations = [];
+            if (!sprite.conversations) sprite.conversations = [];
+            if (!targetSprite.conversations) targetSprite.conversations = [];
             
-            const newThought = {
-              spriteId: sprite.id,
-              thought,
-              timestamp: Date.now()
-            };
+            gameState.conversations.push(dialogue);
+            sprite.conversations.push(dialogue);
+            targetSprite.conversations.push(dialogue);
             
-            gameState.thoughts.push(newThought);
-            sprite.thoughts.push(newThought);
+            // Keep last 50 conversations for game state and 10 for each sprite
+            if (gameState.conversations.length > 50) {
+              gameState.conversations = gameState.conversations.slice(-50);
+            }
+            if (sprite.conversations.length > 10) {
+              sprite.conversations = sprite.conversations.slice(-10);
+            }
+            if (targetSprite.conversations.length > 10) {
+              targetSprite.conversations = targetSprite.conversations.slice(-10);
+            }
             
-            // Keep last 50 thoughts for each
-            if (gameState.thoughts.length > 50) gameState.thoughts = gameState.thoughts.slice(-50);
-            if (sprite.thoughts.length > 10) sprite.thoughts = sprite.thoughts.slice(-10);
+            // Generate a response from the target sprite
+            const response = await generateDialogue(targetSprite, sprite);
+            if (response) {
+              gameState.conversations.push(response);
+              sprite.conversations.push(response);
+              targetSprite.conversations.push(response);
+            }
           }
         }
       }
@@ -241,7 +267,8 @@ export default async function handler(request) {
         state: sprite.state,
         stateTimer: sprite.stateTimer,
         currentTarget: sprite.currentTarget,
-        thoughts: sprite.thoughts
+        thoughts: sprite.thoughts,
+        conversations: sprite.conversations
       };
     }));
 
