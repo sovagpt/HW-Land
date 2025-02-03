@@ -25,6 +25,21 @@
     font-size: 12px;
     pointer-events: none;
 }
+.thought-history {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 300px;
+    max-height: 400px;
+    overflow-y: auto;
+    display: none;
+    z-index: 2000;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
         .game-layer {
             position: absolute;
             top: 0;
@@ -272,45 +287,68 @@
         }
         
         function createSprite(data) {
-            const sprite = document.createElement('div');
-            sprite.className = 'sprite';
-            sprite.setAttribute('data-id', data.id);
-            
-            // Set size of the visible sprite
-            sprite.style.width = '32px';
-            sprite.style.height = '32px';
-            
-            // Set the sprite sheet as background
-            const imageUrl = `${window.location.origin}/sprites/${data.type}.png`;
-            sprite.style.backgroundImage = `url(${imageUrl})`;
-            
-            // Set background size based on actual sprite sheet dimensions (768x256)
-            sprite.style.backgroundSize = '768px 256px';
-            
-            // Position the sprite on screen
-            sprite.style.position = 'absolute';
-            sprite.style.left = `${data.x}px`;
-            sprite.style.top = `${data.y}px`;
-            
-            // Add transition for smooth movement
-            sprite.style.transition = 'left 0.5s linear, top 0.5s linear';
-            
-            // Animation state
-            let frame = 0;
-            sprite.dataset.animationRow = 0; // Default to facing down
-            
-            // Animate walking
-            setInterval(() => {
-                const row = parseInt(sprite.dataset.animationRow || 0);
-                const x = -(frame * 32); // Frame width
-                const y = -(row * 32); // Row height
-                sprite.style.backgroundPosition = `${x}px ${y}px`;
-                frame = (frame + 1) % 4;
-            }, 150);
-            
-            document.getElementById('spriteLayer').appendChild(sprite);
-            return sprite;
-        }
+   const sprite = document.createElement('div');
+   sprite.className = 'sprite';
+   sprite.setAttribute('data-id', data.id);
+   
+   sprite.style.width = '32px';
+   sprite.style.height = '32px';
+   
+   const imageUrl = `${window.location.origin}/sprites/${data.type}.png`;
+   sprite.style.backgroundImage = `url(${imageUrl})`;
+   
+   sprite.style.backgroundSize = '768px 256px';
+   sprite.style.position = 'absolute';
+   sprite.style.left = `${data.x}px`;
+   sprite.style.top = `${data.y}px`;
+   sprite.style.transition = 'left 0.5s linear, top 0.5s linear';
+   sprite.style.cursor = 'pointer';
+   
+   let frame = 0;
+   sprite.dataset.animationRow = 0;
+   
+   setInterval(() => {
+       const row = parseInt(sprite.dataset.animationRow || 0);
+       const x = -(frame * 32);
+       const y = -(row * 32);
+       sprite.style.backgroundPosition = `${x}px ${y}px`;
+       frame = (frame + 1) % 4;
+   }, 150);
+   
+   sprite.addEventListener('click', () => {
+       showThoughtHistory(data);
+   });
+   
+   document.getElementById('spriteLayer').appendChild(sprite);
+   return sprite;
+}
+
+        function showThoughtHistory(spriteData) {
+    let historyDiv = document.querySelector('.thought-history');
+    if (!historyDiv) {
+        historyDiv = document.createElement('div');
+        historyDiv.className = 'thought-history';
+        document.body.appendChild(historyDiv);
+    }
+
+    const thoughts = gameState.thoughts.filter(t => t.spriteId === spriteData.id);
+    
+    historyDiv.innerHTML = `
+        <h3>${spriteData.id}'s Thoughts</h3>
+        <div style="margin-bottom: 10px">
+            ${thoughts.length ? thoughts.map(t => 
+                `<p style="border-bottom: 1px solid #eee; padding: 5px 0">
+                    <small>${new Date(t.timestamp).toLocaleTimeString()}</small><br>
+                    ${t.thought}
+                </p>`
+            ).join('') : '<p>No thoughts yet</p>'}
+        </div>
+        <button onclick="this.parentElement.style.display='none'" 
+                style="padding: 5px 10px; cursor: pointer">Close</button>
+    `;
+    
+    historyDiv.style.display = 'block';
+}
 
         async function initGame() {
             log('Starting game initialization...');
