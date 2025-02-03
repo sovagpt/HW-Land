@@ -133,7 +133,7 @@ export default async function handler(request) {
             momentumX: 0,
             momentumY: 0
           },
-          ...Array.from({ length: 17 }, (_, i) => ({
+          ...Array.from({ length: 7 }, (_, i) => ({
             id: `npc${i + 1}`,
             x: Math.random() * 800 + 50,
             y: Math.random() * 800 + 50,
