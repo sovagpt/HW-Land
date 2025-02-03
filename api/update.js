@@ -2,6 +2,8 @@
 import { Redis } from '@upstash/redis'
 import OpenAI from 'openai';
 
+let shouldReset = true;
+
 const redis = new Redis({
   url: process.env.KV_REST_API_URL,
   token: process.env.KV_REST_API_TOKEN,
@@ -72,7 +74,7 @@ function calculateMovement(sprite, targetSprite, gameState) {
   
   return {
     momentumX: (sprite.momentumX || 0) * 0.9 + (dx / distance) * strength,
-    momentumY: (sprite.momentumY || 0) * 0.9 + (dy / distance) * strength
+    momentumY: (sprite.momentumX || 0) * 0.9 + (dy / distance) * strength
   };
 }
 
@@ -117,7 +119,7 @@ export default async function handler(request) {
   try {
     let gameState = await redis.get('gameState')
     
-    if (!gameState) {
+    if (shouldReset || !gameState) {
       gameState = {
         sprites: [
           {
@@ -148,6 +150,7 @@ export default async function handler(request) {
         votes: {},
         activeVoting: false
       }
+      shouldReset = false;
     }
 
     if (!gameState.sprites) {
