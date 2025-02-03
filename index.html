@@ -14,6 +14,17 @@
             background: #000;
             overflow: scroll;
         }
+        .thought-bubble {
+    position: absolute;
+    background: white;
+    border: 2px solid black;
+    border-radius: 15px;
+    padding: 10px;
+    max-width: 200px;
+    z-index: 1000;
+    font-size: 12px;
+    pointer-events: none;
+}
         .game-layer {
             position: absolute;
             top: 0;
@@ -383,40 +394,64 @@
         }
 
         function updateGameState(newState) {
-            log('Received new state: ' + JSON.stringify(newState));
-            
-            const oldState = gameState;
-            gameState = newState;
-        
-            if (gameState.sprites) {
-                log(`Processing ${gameState.sprites.length} sprites`);
-                
-                // Remove old sprites
-                sprites.forEach((sprite, id) => {
-                    if (!gameState.sprites.find(s => s.id === id)) {
-                        log(`Removing sprite: ${id}`);
-                        sprite.remove();
-                        sprites.delete(id);
-                    }
-                });
-        
-                // Update or create sprites
-                gameState.sprites.forEach(spriteData => {
-                    log(`Processing sprite: ${spriteData.id} at ${spriteData.x},${spriteData.y}`);
-                    let sprite = sprites.get(spriteData.id);
-                    if (!sprite) {
-                        log(`Creating new sprite: ${spriteData.id}`);
-                        sprite = createSprite(spriteData);
-                        sprites.set(spriteData.id, sprite);
-                    } else {
-                        log(`Updating existing sprite: ${spriteData.id}`);
-                        updateSprite(sprite, spriteData);
-                    }
-                });
-            } else {
-                log('No sprites in game state');
-            }
+    log('Received new state: ' + JSON.stringify(newState));
+    
+    const oldState = gameState;
+    gameState = newState;
+    
+    // Show new thoughts
+    if (newState.thoughts && newState.thoughts.length > 0) {
+        const lastThought = newState.thoughts[newState.thoughts.length - 1];
+        if (!oldState?.thoughts || lastThought.timestamp > oldState.thoughts[oldState.thoughts.length - 1]?.timestamp) {
+            showThought(lastThought.spriteId, lastThought.thought);
         }
+    }
+    
+    if (gameState.sprites) {
+        log(`Processing ${gameState.sprites.length} sprites`);
+        
+        // Remove old sprites
+        sprites.forEach((sprite, id) => {
+            if (!gameState.sprites.find(s => s.id === id)) {
+                log(`Removing sprite: ${id}`);
+                sprite.remove();
+                sprites.delete(id);
+            }
+        });
+        
+        // Update or create sprites
+        gameState.sprites.forEach(spriteData => {
+            log(`Processing sprite: ${spriteData.id} at ${spriteData.x},${spriteData.y}`);
+            let sprite = sprites.get(spriteData.id);
+            if (!sprite) {
+                log(`Creating new sprite: ${spriteData.id}`);
+                sprite = createSprite(spriteData);
+                sprites.set(spriteData.id, sprite);
+            } else {
+                log(`Updating existing sprite: ${spriteData.id}`);
+                updateSprite(sprite, spriteData);
+            }
+        });
+    } else {
+        log('No sprites in game state');
+    }
+}
+
+function showThought(spriteId, thought) {
+    const sprite = document.querySelector(`[data-id="${spriteId}"]`);
+    if (!sprite) return;
+
+    const thoughtBubble = document.createElement('div');
+    thoughtBubble.className = 'thought-bubble';
+    thoughtBubble.textContent = thought;
+
+    const rect = sprite.getBoundingClientRect();
+    thoughtBubble.style.left = `${parseInt(sprite.style.left) + 40}px`;
+    thoughtBubble.style.top = `${parseInt(sprite.style.top) - 40}px`;
+
+    document.getElementById('spriteLayer').appendChild(thoughtBubble);
+    setTimeout(() => thoughtBubble.remove(), 5000);
+}
 
         function isValidPosition(x, y) {
             const canvas = document.getElementById('mapCanvas');
