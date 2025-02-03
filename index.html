@@ -397,7 +397,7 @@
                     clearInterval(window.updateInterval);
                 }
                 // Set new interval
-                window.updateInterval = setInterval(requestUpdate, 1000);
+                window.updateInterval = setInterval(requestUpdate, 2000);
                 log('Update interval set');
         
             } catch (error) {
@@ -511,42 +511,48 @@ function showThought(spriteId, thought) {
         }
 
         function updateSprite(sprite, data) {
-            // Get current position
-            const currentX = parseFloat(sprite.style.left) || data.x;
-            const currentY = parseFloat(sprite.style.top) || data.y;
-            
-            // Calculate movement direction
-            const deltaX = data.x - currentX;
-            const deltaY = data.y - currentY;
-            
-            // Determine which direction animation to use based on movement
-            let row = 0; // Default down
-            if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                // Moving more horizontally than vertically
-                if (deltaX > 0) {
-                    row = 2; // Right
-                } else {
-                    row = 1; // Left
-                }
+    // Get current position
+    const currentX = parseFloat(sprite.style.left) || data.x;
+    const currentY = parseFloat(sprite.style.top) || data.y;
+    
+    // Calculate movement direction
+    const deltaX = data.x - currentX;
+    const deltaY = data.y - currentY;
+    
+    // Only update animation if movement is significant
+    if (Math.abs(deltaX) > 1 || Math.abs(deltaY) > 1) {
+        // Determine which direction animation to use based on movement
+        let row = 0; // Default down
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+            // Moving more horizontally than vertically
+            if (deltaX > 0) {
+                row = 2; // Right
             } else {
-                // Moving more vertically than horizontally
-                if (deltaY < 0) {
-                    row = 3; // Up
-                } else {
-                    row = 0; // Down
-                }
+                row = 1; // Left
             }
-            
-            // Store the current row on the sprite element
-            sprite.dataset.animationRow = row;
-            
-            // Add transition
-            sprite.style.transition = 'left 0.5s linear, top 0.5s linear';
-            
-            // Set new position
-            sprite.style.left = `${data.x}px`;
-            sprite.style.top = `${data.y}px`;
+        } else {
+            // Moving more vertically than horizontally
+            if (deltaY < 0) {
+                row = 3; // Up
+            } else {
+                row = 0; // Down
+            }
         }
+        
+        // Store the current row on the sprite element
+        sprite.dataset.animationRow = row;
+    } else {
+        // If barely moving, don't animate
+        return;
+    }
+    
+    // Remove transition for smoother movement
+    sprite.style.transition = 'none';
+    
+    // Set new position
+    sprite.style.left = `${data.x}px`;
+    sprite.style.top = `${data.y}px`;
+}
         
 
         function showThought(sprite, thought) {
