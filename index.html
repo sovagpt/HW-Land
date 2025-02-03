@@ -524,9 +524,6 @@
         let cameraPosition = { x: 0, y: 0 };
 const MOVE_AMOUNT = 50;
 
-let cameraPosition = { x: 0, y: 0 };
-const MOVE_AMOUNT = 50;
-
 function moveMap(direction) {
     switch(direction) {
         case 'up':
@@ -543,7 +540,6 @@ function moveMap(direction) {
             break;
     }
     
-    // Update both map and sprite layer positions
     document.getElementById('mapCanvas').style.transform = 
         `scale(2) translate(${cameraPosition.x}px, ${cameraPosition.y}px)`;
     document.getElementById('spriteLayer').style.transform = 
