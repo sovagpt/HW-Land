@@ -126,6 +126,67 @@
             display: none;
             z-index: 100;
         }
+        .npc-profile {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            border-radius: 8px;
+            width: 300px;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 2000;
+            display: none;
+            font-family: 'Press Start 2P', monospace;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        
+        .npc-header {
+            background: #8b4513;
+            color: white;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .npc-close {
+            cursor: pointer;
+            background: #333;
+            border: none;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+        }
+        
+        .npc-description {
+            padding: 15px;
+            background: #654321;
+            color: white;
+            margin: 0;
+            border-bottom: 2px solid #333;
+        }
+        
+        .npc-conversations {
+            padding: 10px;
+            background: #f0f0f0;
+        }
+        
+        .conversation-entry {
+            background: #fff9c4;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        
+        .timestamp {
+            font-size: 0.8em;
+            color: #666;
+        }
         #debug {
             position: fixed;
             left: 10px;
@@ -323,31 +384,62 @@
    return sprite;
 }
 
-        function showThoughtHistory(spriteData) {
-    let historyDiv = document.querySelector('.thought-history');
-    if (!historyDiv) {
-        historyDiv = document.createElement('div');
-        historyDiv.className = 'thought-history';
-        document.body.appendChild(historyDiv);
+function showThoughtHistory(spriteData) {
+    // Remove any existing profile window
+    const existingProfile = document.querySelector('.npc-profile');
+    if (existingProfile) {
+        existingProfile.remove();
     }
 
-    const thoughts = gameState.thoughts.filter(t => t.spriteId === spriteData.id);
-    
-    historyDiv.innerHTML = `
-        <h3>${spriteData.id}'s Thoughts</h3>
-        <div style="margin-bottom: 10px">
-            ${thoughts.length ? thoughts.map(t => 
-                `<p style="border-bottom: 1px solid #eee; padding: 5px 0">
-                    <small>${new Date(t.timestamp).toLocaleTimeString()}</small><br>
-                    ${t.thought}
-                </p>`
-            ).join('') : '<p>No thoughts yet</p>'}
+    const profile = document.createElement('div');
+    profile.className = 'npc-profile';
+
+    // Get NPC description based on ID
+    const npcDescription = getNPCDescription(spriteData.id);
+
+    profile.innerHTML = `
+        <div class="npc-header">
+            <span>${spriteData.id.toUpperCase()}</span>
+            <button class="npc-close" onclick="this.parentElement.parentElement.remove()">×</button>
         </div>
-        <button onclick="this.parentElement.style.display='none'" 
-                style="padding: 5px 10px; cursor: pointer">Close</button>
+        <div class="npc-description">
+            ${npcDescription}
+        </div>
+        <div class="npc-conversations">
+            ${gameState.conversations
+                .filter(c => c.speaker === spriteData.id || c.listener === spriteData.id)
+                .slice(-10)
+                .map(conv => `
+                    <div class="conversation-entry">
+                        <div class="timestamp">
+                            ${new Date(conv.timestamp).toLocaleString()}
+                        </div>
+                        <strong>${conv.speaker}:</strong> ${conv.content}
+                    </div>
+                `).join('')}
+        </div>
     `;
+
+    document.body.appendChild(profile);
+    profile.style.display = 'block';
+}
+
+function getNPCDescription(id) {
+    if (id === 'truman') {
+        return "A curious individual who's beginning to question the nature of reality. Unaware of the true nature of the town.";
+    }
     
-    historyDiv.style.display = 'block';
+    const descriptions = {
+        npc1: "A wise village elder who helps maintain the illusion. Often gives philosophical advice.",
+        npc2: "The local shopkeeper who keeps track of the town's activities.",
+        npc3: "A friendly neighbor who specializes in distracting Truman from suspicious events.",
+        npc4: "The town's historian who helps create and maintain backstories.",
+        npc5: "A scientist working on maintaining the simulation's stability.",
+        npc6: "The local gardener who ensures everything looks natural and perfect.",
+        npc7: "A wandering storyteller who helps reinforce the town's narrative."
+    };
+
+    return descriptions[id] || "A mysterious resident of the town.";
 }
 
         async function initGame() {
