@@ -84,10 +84,17 @@
             image-rendering: pixelated;
         }
         .nav-buttons {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 5px;
-    width: 150px;
+    padding: 10px;
+    box-sizing: border-box;
+    pointer-events: none;
 }
 
 .nav-btn {
@@ -100,6 +107,9 @@
     cursor: pointer;
     border: 2px solid #555;
     border-radius: 4px;
+    pointer-events: auto;
+    justify-self: center;
+    align-self: center;
 }
 
 .nav-btn:hover {
@@ -273,97 +283,106 @@
 
     <script>
 
-    window.onload = async () => {
-        log('Checking static files...');
-        
-        const files = [
-            '/maps/world.png',
-            '/sprites/TrumanSprite.png',
-            '/sprites/NPCSprite.png',
-            '/tilesets/tileset.png'
-        ];
+    function initMinimap() {
+    const mainCanvas = document.getElementById('mapCanvas');
+    const minimapCanvas = document.getElementById('minimap-canvas');
+    const ctx = minimapCanvas.getContext('2d');
     
-        for (const file of files) {
-            try {
-                const response = await fetch(file);
-                const status = response.status;
-                log(`${file}: ${status} (${response.ok ? 'Found' : 'Not Found'})`);
-                
-                // If it's an image, try to get its dimensions
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const img = new Image();
-                    img.src = URL.createObjectURL(blob);
-                    await new Promise((resolve) => {
-                        img.onload = () => {
-                            log(`${file} dimensions: ${img.width}x${img.height}`);
-                            resolve();
-                        };
-                    });
-                }
-            } catch (error) {
-                log(`${file}: Error - ${error.message}`);
-            }
-        }
+    // Set minimap canvas size
+    minimapCanvas.width = 150;
+    minimapCanvas.height = 150;
     
-        initGame();
-    };
-
-    window.addEventListener('load', () => {
-        const minimapContainer = `
-        <div id="minimap-container">
-            <div id="minimap">
-                <canvas id="minimap-canvas"></canvas>
-                <div id="player-position"></div>
-                <div class="nav-buttons">
-                    <div></div>
-                    <button class="nav-btn" onclick="moveMap('up')">↑</button>
-                    <div></div>
-                    <button class="nav-btn" onclick="moveMap('left')">←</button>
-                    <div></div>
-                    <button class="nav-btn" onclick="moveMap('right')">→</button>
-                    <div></div>
-                    <button class="nav-btn" onclick="moveMap('down')">↓</button>
-                    <div></div>
-                </div>
-            </div>
-        </div>`;
-        document.body.insertAdjacentHTML('beforeend', minimapContainer);
-    
-        // Draw the minimap
-        const mainCanvas = document.getElementById('mapCanvas');
-        const minimapCanvas = document.getElementById('minimap-canvas');
-        const ctx = minimapCanvas.getContext('2d');
-        
-        // Set minimap canvas size
-        minimapCanvas.width = 150;
-        minimapCanvas.height = 150;
-        
-        // Draw the main map scaled down to the minimap
+    // Get the world map image
+    const worldMap = new Image();
+    worldMap.onload = () => {
         ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(mainCanvas, 0, 0, minimapCanvas.width, minimapCanvas.height);
+        ctx.drawImage(worldMap, 0, 0, minimapCanvas.width, minimapCanvas.height);
+    };
+    worldMap.src = `${window.location.origin}/maps/world.png`;
+}
+
+window.addEventListener('load', async () => {
+    // First part - file checking
+    log('Checking static files...');
     
-        // Update player position
-        const container = document.getElementById('gameContainer');
-        const playerPosition = document.getElementById('player-position');
-    
-        container.addEventListener('scroll', () => {
-            const scrollX = container.scrollLeft;
-            const scrollY = container.scrollTop;
-            const maxScrollX = container.scrollWidth - container.clientWidth;
-            const maxScrollY = container.scrollHeight - container.clientHeight;
-    
-            const relativeX = scrollX / maxScrollX;
-            const relativeY = scrollY / maxScrollY;
-    
-            const minimap = document.getElementById('minimap');
-            const minimapX = relativeX * (minimap.clientWidth - 6);
-            const minimapY = relativeY * (minimap.clientHeight - 6);
-    
-            playerPosition.style.left = minimapX + 'px';
-            playerPosition.style.top = minimapY + 'px';
-        });
+    const files = [
+        '/maps/world.png',
+        '/sprites/TrumanSprite.png',
+        '/sprites/NPCSprite.png',
+        '/tilesets/tileset.png'
+    ];
+
+    for (const file of files) {
+        try {
+            const response = await fetch(file);
+            const status = response.status;
+            log(`${file}: ${status} (${response.ok ? 'Found' : 'Not Found'})`);
+            
+            if (response.ok) {
+                const blob = await response.blob();
+                const img = new Image();
+                img.src = URL.createObjectURL(blob);
+                await new Promise((resolve) => {
+                    img.onload = () => {
+                        log(`${file} dimensions: ${img.width}x${img.height}`);
+                        resolve();
+                    };
+                });
+            }
+        } catch (error) {
+            log(`${file}: Error - ${error.message}`);
+        }
+    }
+
+    await initGame();
+
+    // Second part - minimap setup
+    const minimapContainer = `
+    <div id="minimap-container">
+        <div id="minimap">
+            <canvas id="minimap-canvas"></canvas>
+            <div id="player-position"></div>
+            <div class="nav-buttons">
+                <div></div>
+                <button class="nav-btn" onclick="moveMap('up')">↑</button>
+                <div></div>
+                <button class="nav-btn" onclick="moveMap('left')">←</button>
+                <div></div>
+                <button class="nav-btn" onclick="moveMap('right')">→</button>
+                <div></div>
+                <button class="nav-btn" onclick="moveMap('down')">↓</button>
+                <div></div>
+            </div>
+        </div>
+    </div>`;
+    document.body.insertAdjacentHTML('beforeend', minimapContainer);
+
+    // Wait a short delay for the main canvas to be ready
+    setTimeout(() => {
+        initMinimap();
+    }, 1000);
+
+    // Update player position
+    const container = document.getElementById('gameContainer');
+    const playerPosition = document.getElementById('player-position');
+
+    container.addEventListener('scroll', () => {
+        const scrollX = container.scrollLeft;
+        const scrollY = container.scrollTop;
+        const maxScrollX = container.scrollWidth - container.clientWidth;
+        const maxScrollY = container.scrollHeight - container.clientHeight;
+
+        const relativeX = scrollX / maxScrollX;
+        const relativeY = scrollY / maxScrollY;
+
+        const minimap = document.getElementById('minimap');
+        const minimapX = relativeX * (minimap.clientWidth - 6);
+        const minimapY = relativeY * (minimap.clientHeight - 6);
+
+        playerPosition.style.left = minimapX + 'px';
+        playerPosition.style.top = minimapY + 'px';
     });
+});
         let gameState = null;
         let sprites = new Map();
         let eventSource = null;
