@@ -47,7 +47,7 @@
             overflow: hidden;
             background-repeat: no-repeat;
             z-index: 1000;
-            /* Remove the debug border */
+            transition: left 1s linear, top 1s linear;
         }
         #thoughtBubble {
             position: absolute;
@@ -253,26 +253,19 @@
             sprite.style.left = `${data.x}px`;
             sprite.style.top = `${data.y}px`;
             
+            // Add transition for smooth movement
+            sprite.style.transition = 'left 1s linear, top 1s linear';
+            
             // Animation state
             let frame = 0;
             const FRAME_WIDTH = 32;
-            const FRAMES_PER_ROW = 24; // 768/32 = 24 frames per row
-            let currentRow = 0; // For different walking directions
+            const FRAMES_PER_ROW = 24;
             
-            // Animate walking - use different rows for different directions
+            // Animate walking
             setInterval(() => {
-                // Calculate position in sprite sheet
                 const x = -(frame * FRAME_WIDTH);
-                const y = -(currentRow * FRAME_WIDTH);
-                sprite.style.backgroundPosition = `${x}px ${y}px`;
-                
-                // Increment frame
-                frame = (frame + 1) % 4; // Use first 4 frames for walking animation
-                
-                // Optionally change row/direction periodically
-                if (frame === 0) {
-                    currentRow = (currentRow + 1) % 4; // 4 directions (down, left, right, up)
-                }
+                sprite.style.backgroundPosition = `${x}px 0px`;
+                frame = (frame + 1) % 4;
             }, 200);
             
             document.getElementById('spriteLayer').appendChild(sprite);
@@ -416,10 +409,18 @@
         }
 
         function updateSprite(sprite, data) {
+            // Get current position
+            const currentX = parseFloat(sprite.style.left) || data.x;
+            const currentY = parseFloat(sprite.style.top) || data.y;
+            
+            // Add transition
+            sprite.style.transition = 'left 1s linear, top 1s linear';
+            
+            // Set new position
             sprite.style.left = `${data.x}px`;
             sprite.style.top = `${data.y}px`;
-            log(`Updated sprite position to ${data.x},${data.y}`);
         }
+        
 
         function showThought(sprite, thought) {
             const rect = sprite.getBoundingClientRect();
