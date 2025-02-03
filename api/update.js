@@ -11,23 +11,17 @@ export const config = {
 }
 
 function checkCollision(x, y) {
- // Define forbidden areas
  const forbiddenAreas = [
-   // Main river
-   { x: 300, y: 0, width: 100, height: 960 },
-   // Forest areas
-   { x: 600, y: 100, width: 200, height: 300 },
-   { x: 100, y: 400, width: 150, height: 200 }
+   { x: 300, y: 0, width: 100, height: 960 }, // River
  ];
 
- // Check for collisions
  for (const area of forbiddenAreas) {
    if (x >= area.x && x <= area.x + area.width &&
        y >= area.y && y <= area.y + area.height) {
-     return true; // Collision detected
+     return true;
    }
  }
- return false; // No collision
+ return false;
 }
 
 export default async function handler(request) {
@@ -61,7 +55,9 @@ export default async function handler(request) {
            type: 'TrumanSprite',
            isUnaware: true,
            thoughts: [],
-           memories: []
+           memories: [],
+           momentumX: 0,
+           momentumY: 0
          },
          {
            id: 'npc1',
@@ -69,7 +65,9 @@ export default async function handler(request) {
            y: 450,
            type: 'NPCSprite',
            thoughts: [],
-           memories: []
+           memories: [],
+           momentumX: 0,
+           momentumY: 0
          },
          {
            id: 'npc2',
@@ -77,7 +75,9 @@ export default async function handler(request) {
            y: 550,
            type: 'NPCSprite',
            thoughts: [],
-           memories: []
+           memories: [],
+           momentumX: 0,
+           momentumY: 0
          }
        ],
        time: Date.now(),
@@ -92,33 +92,29 @@ export default async function handler(request) {
      gameState.sprites = [];
    }
 
-   // Update sprite positions with collision detection
    gameState.sprites = gameState.sprites.map(sprite => {
-     let validMove = false;
-     let newX = sprite.x;
-     let newY = sprite.y;
-     let attempts = 0;
-
-     while (!validMove && attempts < 5) {
-       const moveX = (Math.random() - 0.5) * 20;
-       const moveY = (Math.random() - 0.5) * 20;
-       
-       const testX = Math.max(50, Math.min(910, sprite.x + moveX));
-       const testY = Math.max(50, Math.min(910, sprite.y + moveY));
-       
-       if (!checkCollision(testX, testY)) {
-         newX = testX;
-         newY = testY;
-         validMove = true;
-         console.log(`Valid move found for ${sprite.id} to (${newX},${newY})`);
-       }
-       attempts++;
+     const moveX = (Math.random() - 0.5) * 40;
+     const moveY = (Math.random() - 0.5) * 40;
+     
+     sprite.momentumX = (sprite.momentumX || 0) * 0.8 + moveX * 0.2;
+     sprite.momentumY = (sprite.momentumY || 0) * 0.8 + moveY * 0.2;
+     
+     let newX = Math.max(50, Math.min(910, sprite.x + sprite.momentumX));
+     let newY = Math.max(50, Math.min(910, sprite.y + sprite.momentumY));
+     
+     if (checkCollision(newX, newY)) {
+       newX = sprite.x;
+       newY = sprite.y;
+       sprite.momentumX = -sprite.momentumX;
+       sprite.momentumY = -sprite.momentumY;
      }
 
      return {
        ...sprite,
        x: newX,
        y: newY,
+       momentumX: sprite.momentumX,
+       momentumY: sprite.momentumY
      };
    });
 
