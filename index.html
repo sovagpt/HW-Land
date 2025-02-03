@@ -519,35 +519,29 @@ function showThought(spriteId, thought) {
     const deltaX = data.x - currentX;
     const deltaY = data.y - currentY;
     
-    // Only update animation if movement is significant
-    if (Math.abs(deltaX) > 1 || Math.abs(deltaY) > 1) {
-        // Determine which direction animation to use based on movement
-        let row = 0; // Default down
-        if (Math.abs(deltaX) > Math.abs(deltaY)) {
-            // Moving more horizontally than vertically
-            if (deltaX > 0) {
-                row = 2; // Right
-            } else {
-                row = 1; // Left
-            }
+    // Determine which direction animation to use based on movement
+    let row = 0; // Default down
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        // Moving more horizontally than vertically
+        if (deltaX > 0) {
+            row = 2; // Right
         } else {
-            // Moving more vertically than horizontally
-            if (deltaY < 0) {
-                row = 3; // Up
-            } else {
-                row = 0; // Down
-            }
+            row = 1; // Left
         }
-        
-        // Store the current row on the sprite element
-        sprite.dataset.animationRow = row;
     } else {
-        // If barely moving, don't animate
-        return;
+        // Moving more vertically than horizontally
+        if (deltaY < 0) {
+            row = 3; // Up
+        } else {
+            row = 0; // Down
+        }
     }
     
-    // Remove transition for smoother movement
-    sprite.style.transition = 'none';
+    // Store the current row on the sprite element
+    sprite.dataset.animationRow = row;
+    
+    // Add transition for smooth movement
+    sprite.style.transition = 'left 0.5s linear, top 0.5s linear';
     
     // Set new position
     sprite.style.left = `${data.x}px`;
