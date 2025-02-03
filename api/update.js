@@ -2,7 +2,6 @@
 import { Redis } from '@upstash/redis'
 import OpenAI from 'openai';
 
-let shouldReset = true;
 const UPDATE_FREQUENCY = 0.3;
 
 const redis = new Redis({
@@ -122,7 +121,7 @@ export default async function handler(request) {
   try {
     let gameState = await redis.get('gameState')
     
-    if (shouldReset || !gameState) {
+    if (!gameState) {
       gameState = {
         sprites: [
           {
@@ -153,7 +152,6 @@ export default async function handler(request) {
         votes: {},
         activeVoting: false
       }
-      shouldReset = false;
     }
 
     if (!gameState.sprites) {
