@@ -258,13 +258,14 @@
             
             // Animation state
             let frame = 0;
-            const FRAME_WIDTH = 32;
-            const FRAMES_PER_ROW = 24;
+            sprite.dataset.animationRow = 0; // Default to facing down
             
             // Animate walking
             setInterval(() => {
-                const x = -(frame * FRAME_WIDTH);
-                sprite.style.backgroundPosition = `${x}px 0px`;
+                const row = parseInt(sprite.dataset.animationRow || 0);
+                const x = -(frame * 32); // Frame width
+                const y = -(row * 32); // Row height
+                sprite.style.backgroundPosition = `${x}px ${y}px`;
                 frame = (frame + 1) % 4;
             }, 200);
             
@@ -412,6 +413,31 @@
             // Get current position
             const currentX = parseFloat(sprite.style.left) || data.x;
             const currentY = parseFloat(sprite.style.top) || data.y;
+            
+            // Calculate movement direction
+            const deltaX = data.x - currentX;
+            const deltaY = data.y - currentY;
+            
+            // Determine which direction animation to use based on movement
+            let row = 0; // Default down
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                // Moving more horizontally than vertically
+                if (deltaX > 0) {
+                    row = 2; // Right
+                } else {
+                    row = 1; // Left
+                }
+            } else {
+                // Moving more vertically than horizontally
+                if (deltaY < 0) {
+                    row = 3; // Up
+                } else {
+                    row = 0; // Down
+                }
+            }
+            
+            // Store the current row on the sprite element
+            sprite.dataset.animationRow = row;
             
             // Add transition
             sprite.style.transition = 'left 1s linear, top 1s linear';
