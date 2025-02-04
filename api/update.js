@@ -3,6 +3,7 @@ import { Redis } from '@upstash/redis'
 import OpenAI from 'openai';
 
 const UPDATE_FREQUENCY = 0.3;
+const npcNames = ['sarah', 'michael', 'emma', 'james', 'olivia', 'william', 'sophia'];
 
 const redis = new Redis({
   url: process.env.KV_REST_API_URL,
@@ -149,43 +150,110 @@ export default async function handler(request) {
     
     if (!gameState) {
       gameState = {
-        sprites: [
-          {
-            id: 'truman',
-            x: 500,
-            y: 500,
-            type: 'TrumanSprite',
-            isUnaware: true,
-            thoughts: [],
-            conversations: [],
-            memories: [],
-            momentumX: 0,
-            momentumY: 0
-          },
-          ...Array.from({ length: 7 }, (_, i) => ({
-            id: `npc${i + 1}`,
-            x: Math.random() * 800 + 50,
-            y: Math.random() * 800 + 50,
-            type: 'NPCSprite',
-            thoughts: [],
-            conversations: [],
-            memories: [],
-            momentumX: 0,
-            momentumY: 0
-          }))
-        ],
-        time: Date.now(),
-        thoughts: [],
-        conversations: [],
-        currentEvent: null,
-        votes: {},
-        activeVoting: false
+          sprites: [
+              {
+                  id: 'truman',
+                  x: 500,
+                  y: 500,
+                  type: 'TrumanSprite',
+                  isUnaware: true,
+                  thoughts: [],
+                  conversations: [],
+                  memories: [],
+                  momentumX: 0,
+                  momentumY: 0
+              },
+              {
+                  id: 'sarah',
+                  x: 450,
+                  y: 450,
+                  type: 'NPCSprite',
+                  thoughts: [],
+                  conversations: [],
+                  memories: [],
+                  momentumX: 0,
+                  momentumY: 0
+              },
+              {
+                  id: 'michael',
+                  x: 550,
+                  y: 550,
+                  type: 'NPCSprite',
+                  thoughts: [],
+                  conversations: [],
+                  memories: [],
+                  momentumX: 0,
+                  momentumY: 0
+              },
+              {
+                  id: 'emma',
+                  x: 400,
+                  y: 500,
+                  type: 'NPCSprite',
+                  thoughts: [],
+                  conversations: [],
+                  memories: [],
+                  momentumX: 0,
+                  momentumY: 0
+              },
+              {
+                  id: 'james',
+                  x: 600,
+                  y: 400,
+                  type: 'NPCSprite',
+                  thoughts: [],
+                  conversations: [],
+                  memories: [],
+                  momentumX: 0,
+                  momentumY: 0
+              },
+              {
+                  id: 'olivia',
+                  x: 500,
+                  y: 600,
+                  type: 'NPCSprite',
+                  thoughts: [],
+                  conversations: [],
+                  memories: [],
+                  momentumX: 0,
+                  momentumY: 0
+              },
+              {
+                  id: 'william',
+                  x: 350,
+                  y: 350,
+                  type: 'NPCSprite',
+                  thoughts: [],
+                  conversations: [],
+                  memories: [],
+                  momentumX: 0,
+                  momentumY: 0
+              },
+              {
+                  id: 'sophia',
+                  x: 650,
+                  y: 650,
+                  type: 'NPCSprite',
+                  thoughts: [],
+                  conversations: [],
+                  memories: [],
+                  momentumX: 0,
+                  momentumY: 0
+              }
+          ],
+          time: Date.now(),
+          thoughts: [],
+          conversations: [],
+          currentEvent: null,
+          votes: {},
+          activeVoting: false
       }
-    }
-
-    if (!gameState.sprites) {
+  }
+  
+  if (!gameState.sprites) {
       gameState.sprites = [];
-    }
+  }
+  
 
     // Process all sprites
     gameState.sprites = await Promise.all(gameState.sprites.map(async sprite => {
