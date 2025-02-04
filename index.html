@@ -26,21 +26,6 @@
     font-size: 12px;
     pointer-events: none;
 }
-
-.player-indicator {
-    position: absolute;
-    width: 16px;
-    height: 16px;
-    background-image: url('/sprites/arrow.png');
-    image-rendering: pixelated;
-    animation: bounce 1s infinite;
-    z-index: 1001;
-}
-
-@keyframes bounce {
-    0%, 100% { transform: translateY(-5px); }
-    50% { transform: translateY(-10px); }
-}
 .social-buttons {
     position: absolute;
     bottom: 20px;
@@ -190,12 +175,29 @@
             image-rendering: pixelated;
             image-rendering: crisp-edges;
             -ms-interpolation-mode: nearest-neighbor;
-            background-size: 928px 256px;
             position: absolute;
-            overflow: hidden;
+            overflow: visible;  /* Changed from hidden to show arrow */
             background-repeat: no-repeat;
             z-index: 1000;
             transition: left 0.5s linear, top 0.5s linear;
+            background-size: 928px 256px;
+        }
+        
+        .player-indicator {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background-image: url('/sprites/arrow.png');
+            image-rendering: pixelated;
+            animation: bounce 1s infinite;
+            z-index: 1001;
+            top: -20px;
+            left: 8px;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
         }
         #thoughtBubble {
             position: absolute;
