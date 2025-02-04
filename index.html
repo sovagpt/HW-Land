@@ -561,41 +561,39 @@ document.body.insertAdjacentHTML('beforeend', socialButtons);
         }
         
         function createSprite(data) {
-   const sprite = document.createElement('div');
-   sprite.className = 'sprite';
-   sprite.setAttribute('data-id', data.id);
-   
-   sprite.style.width = '32px';
-   sprite.style.height = '32px';
-   
-   const imageUrl = `${window.location.origin}/sprites/${data.type}.png`;
-   sprite.style.backgroundImage = `url(${imageUrl})`;
-   
-   sprite.style.backgroundSize = '768px 256px';
-   sprite.style.position = 'absolute';
-   sprite.style.left = `${data.x}px`;
-   sprite.style.top = `${data.y}px`;
-   sprite.style.transition = 'left 0.5s linear, top 0.5s linear';
-   sprite.style.cursor = 'pointer';
-   
-   let frame = 0;
-   sprite.dataset.animationRow = 0;
-   
-   setInterval(() => {
-       const row = parseInt(sprite.dataset.animationRow || 0);
-       const x = -(frame * 32);
-       const y = -(row * 32);
-       sprite.style.backgroundPosition = `${x}px ${y}px`;
-       frame = (frame + 1) % 4;
-   }, 150);
-   
-   sprite.addEventListener('click', () => {
-       showThoughtHistory(data);
-   });
-   
-   document.getElementById('spriteLayer').appendChild(sprite);
-   return sprite;
-}
+            const sprite = document.createElement('div');
+            sprite.className = 'sprite';
+            sprite.setAttribute('data-id', data.id);
+            
+            sprite.style.width = '32px';
+            sprite.style.height = '32px';
+            
+            const imageUrl = `${window.location.origin}/sprites/${data.type}.png`;
+            sprite.style.backgroundImage = `url(${imageUrl})`;
+            sprite.style.backgroundSize = '928px 256px';
+            sprite.style.position = 'absolute';
+            sprite.style.left = `${data.x}px`;
+            sprite.style.top = `${data.y}px`;
+            sprite.style.cursor = 'pointer';
+            
+            let frame = 0;
+            sprite.dataset.animationRow = 0;
+            
+            setInterval(() => {
+                const row = parseInt(sprite.dataset.animationRow || 0);
+                const x = -(frame * 32);
+                const y = -(row * 32);
+                sprite.style.backgroundPosition = `${x}px ${y}px`;
+                frame = (frame + 1) % 29; // Update from 4 to 29 for new sprite width
+            }, 150);
+            
+            sprite.addEventListener('click', () => {
+                showThoughtHistory(data);
+            });
+            
+            document.getElementById('spriteLayer').appendChild(sprite);
+            return sprite;
+         }
 
 function updateTrumanThoughts(newState) {
     if (newState.thoughts && newState.thoughts.length > 0) {
