@@ -175,12 +175,29 @@
             image-rendering: pixelated;
             image-rendering: crisp-edges;
             -ms-interpolation-mode: nearest-neighbor;
-            background-size: 928px 256px;
             position: absolute;
-            overflow: hidden;
+            overflow: visible;  /* Changed from hidden to show arrow */
             background-repeat: no-repeat;
             z-index: 1000;
             transition: left 0.5s linear, top 0.5s linear;
+            background-size: 928px 256px;
+        }
+        
+        .player-indicator {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background-image: url('/sprites/arrow.png');
+            image-rendering: pixelated;
+            animation: bounce 1s infinite;
+            z-index: 1001;
+            top: -20px;
+            left: 8px;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
         }
         #thoughtBubble {
             position: absolute;
@@ -561,46 +578,51 @@ document.body.insertAdjacentHTML('beforeend', socialButtons);
         }
         
         function createSprite(data) {
-  const sprite = document.createElement('div');
-  sprite.className = 'sprite';
-  sprite.setAttribute('data-id', data.id);
-  
-  sprite.style.width = '32px';
-  sprite.style.height = '32px';
-  
-  const imageUrl = `${window.location.origin}/sprites/${data.type}.png`;
-  sprite.style.backgroundImage = `url(${imageUrl})`;
-  sprite.style.backgroundSize = '928px 256px';
-  sprite.style.position = 'absolute';
-  sprite.style.left = `${data.x}px`;
-  sprite.style.top = `${data.y}px`;
-  sprite.style.cursor = 'pointer';
-  
-  let frame = 0;
-  sprite.dataset.animationRow = 0;
-  
-  setInterval(() => {
-      const row = parseInt(sprite.dataset.animationRow || 0);
-      const isMoving = Math.abs(sprite.momentumX) > 0.1 || Math.abs(sprite.momentumY) > 0.1;
-      
-      // If moving use frames 1-4, if idle use frames 0-1 for bobbing
-      const x = isMoving ? 
-          -((frame % 4 + 1) * 32) : 
-          -((frame % 2) * 32);
-          
-      const y = -(row * 32);
-      sprite.style.backgroundPosition = `${x}px ${y}px`;
-      
-      frame++;
-  }, 150);
-  
-  sprite.addEventListener('click', () => {
-      showThoughtHistory(data);
-  });
-  
-  document.getElementById('spriteLayer').appendChild(sprite);
-  return sprite;
-}
+            const sprite = document.createElement('div');
+            sprite.className = 'sprite';
+            sprite.setAttribute('data-id', data.id);
+            
+            sprite.style.width = '32px';
+            sprite.style.height = '32px';
+            
+            const imageUrl = `${window.location.origin}/sprites/${data.type}.png`;
+            sprite.style.backgroundImage = `url(${imageUrl})`;
+            sprite.style.backgroundSize = '928px 256px';
+            sprite.style.position = 'absolute';
+            sprite.style.left = `${data.x}px`;
+            sprite.style.top = `${data.y}px`;
+            sprite.style.cursor = 'pointer';
+            
+            if (data.id === 'truman') {
+                const indicator = document.createElement('div');
+                indicator.className = 'player-indicator';
+                sprite.appendChild(indicator);
+            }
+            
+            let frame = 0;
+            sprite.dataset.animationRow = 0;
+            
+            setInterval(() => {
+                const row = parseInt(sprite.dataset.animationRow || 0);
+                const isMoving = Math.abs(sprite.momentumX) > 0.1 || Math.abs(sprite.momentumY) > 0.1;
+                
+                const x = isMoving ? 
+                    -((frame % 4 + 1) * 32) : 
+                    -((frame % 2) * 32);
+                    
+                const y = -(row * 32);
+                sprite.style.backgroundPosition = `${x}px ${y}px`;
+                
+                frame++;
+            }, 150);
+            
+            sprite.addEventListener('click', () => {
+                showThoughtHistory(data);
+            });
+            
+            document.getElementById('spriteLayer').appendChild(sprite);
+            return sprite;
+          }
 
 function updateTrumanThoughts(newState) {
     if (newState.thoughts && newState.thoughts.length > 0) {
