@@ -25,6 +25,26 @@
     font-size: 12px;
     pointer-events: none;
 }
+.social-buttons {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 2000;
+}
+
+.social-button {
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    image-rendering: pixelated;
+}
+
+.social-button:hover {
+    transform: scale(1.1);
+}
 .thought-history {
     position: fixed;
     right: 20px;
@@ -365,6 +385,20 @@ window.addEventListener('load', async () => {
     // Update player position
     const container = document.getElementById('gameContainer');
     const playerPosition = document.getElementById('player-position');
+
+    const socialButtons = `
+    <div class="social-buttons">
+        <a href="https://github.com/cheddariniii/helloworld" target="_blank">
+            <img src="https://cdn.prod.website-files.com/674396c59212c6ea348b24e0/67a1585eb63c5a0a5602efba_GitHub.png" alt="GitHub" class="social-button">
+        </a>
+        <a href="https://x.com/hello_worldgame" target="_blank">
+            <img src="https://cdn.prod.website-files.com/674396c59212c6ea348b24e0/67a1585e6bd612599357a983_X.png" alt="Twitter" class="social-button">
+        </a>
+        <a href="https://pump.fun/board" target="_blank">
+            <img src="https://cdn.prod.website-files.com/674396c59212c6ea348b24e0/67a1585e15e9c48b6e64f0c3_pumpfun.png" alt="Pump.fun" class="social-button">
+        </a>
+    </div>`;
+document.body.insertAdjacentHTML('beforeend', socialButtons);
 
     container.addEventListener('scroll', () => {
         const scrollX = container.scrollLeft;
