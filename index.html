@@ -198,13 +198,11 @@
     height: 100%;
     background: rgb(0, 0, 0);
     color: white;
-    overflow-y: auto;
-    font-family: monospace;
-    font-size: 24px;
+    font-family: 'Courier New', monospace;
+    font-size: 20px;
     z-index: 100;
     display: flex;
     flex-direction: column;
-    gap: 20px;
 }
         #votePanel {
             position: fixed;
@@ -239,10 +237,32 @@
 }
 
 .terminal-section h2 {
-    margin: 0;
+    margin: 0 0 15px 0;
     padding: 0;
-    font-size: 28px;
+    font-size: 24px;
     font-weight: bold;
+    color: #00ff00;
+}
+
+.thought-entry {
+    padding: 10px;
+    margin: 5px 0;
+    background: rgba(255, 255, 255, 0.05);
+    border-left: 3px solid #00ff00;
+}
+
+#thoughts-content {
+    max-height: 60vh;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+#voting-content {
+    margin-top: 10px;
+}
+
+.terminal-section:first-child {
+    border-bottom: 2px solid #00ff00;
 }
         
         .npc-header {
@@ -452,12 +472,9 @@ document.body.insertAdjacentHTML('beforeend', socialButtons);
         let mapImage = new Image();
 
         function log(message) {
-    const thoughtsContent = document.getElementById('thoughts-content');
-    if (thoughtsContent) {
-        thoughtsContent.innerHTML += `<div>${message}</div>`;
-        thoughtsContent.scrollTop = thoughtsContent.scrollHeight;
-    }
+    // Only log to console for debugging
     console.log(message);
+    // Don't show debugging messages in the UI anymore
 }
 
         async function loadMap() {
@@ -569,6 +586,21 @@ document.body.insertAdjacentHTML('beforeend', socialButtons);
    
    document.getElementById('spriteLayer').appendChild(sprite);
    return sprite;
+}
+
+function updateTrumanThoughts(newState) {
+    if (newState.thoughts && newState.thoughts.length > 0) {
+        const thoughtsContent = document.getElementById('thoughts-content');
+        const lastThought = newState.thoughts[newState.thoughts.length - 1];
+        if (thoughtsContent && lastThought.spriteId === 'truman') {
+            thoughtsContent.innerHTML += `
+                <div class="thought-entry">
+                    ${lastThought.thought}
+                </div>
+            `;
+            thoughtsContent.scrollTop = thoughtsContent.scrollHeight;
+        }
+    }
 }
 
 function showThoughtHistory(spriteData) {
@@ -712,26 +744,15 @@ async function initGame() {
         }
 
         function updateGameState(newState) {
-    log('Received new state: ' + JSON.stringify(newState));
-    
     const oldState = gameState;
     gameState = newState;
     
-    // Show new thoughts
-    if (newState.thoughts && newState.thoughts.length > 0) {
-        const lastThought = newState.thoughts[newState.thoughts.length - 1];
-        if (!oldState?.thoughts || lastThought.timestamp > oldState.thoughts[oldState.thoughts.length - 1]?.timestamp) {
-            showThought(lastThought.spriteId, lastThought.thought);
-        }
-    }
-    
+    updateTrumanThoughts(newState);
+    // Update sprites
     if (gameState.sprites) {
-        log(`Processing ${gameState.sprites.length} sprites`);
-        
         // Remove old sprites
         sprites.forEach((sprite, id) => {
             if (!gameState.sprites.find(s => s.id === id)) {
-                log(`Removing sprite: ${id}`);
                 sprite.remove();
                 sprites.delete(id);
             }
@@ -739,19 +760,14 @@ async function initGame() {
         
         // Update or create sprites
         gameState.sprites.forEach(spriteData => {
-            log(`Processing sprite: ${spriteData.id} at ${spriteData.x},${spriteData.y}`);
             let sprite = sprites.get(spriteData.id);
             if (!sprite) {
-                log(`Creating new sprite: ${spriteData.id}`);
                 sprite = createSprite(spriteData);
                 sprites.set(spriteData.id, sprite);
             } else {
-                log(`Updating existing sprite: ${spriteData.id}`);
                 updateSprite(sprite, spriteData);
             }
         });
-    } else {
-        log('No sprites in game state');
     }
 }
 
