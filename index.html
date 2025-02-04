@@ -583,15 +583,12 @@ document.body.insertAdjacentHTML('beforeend', socialButtons);
                 const row = parseInt(sprite.dataset.animationRow || 0);
                 const isMoving = Math.abs(sprite.momentumX) > 0.1 || Math.abs(sprite.momentumY) > 0.1;
                 
-                // If moving use frames 1-4, if idle use frames 0-1 for bobbing
-                const x = isMoving ? 
-                    -((frame % 4 + 1) * 32) : 
-                    -((frame % 2) * 32);
-                    
+                // If moving, cycle through frames 1-4, if idle stay on frame 0
+                const x = isMoving ? -((frame % 4 + 1) * 32) : 0;
                 const y = -(row * 32);
                 sprite.style.backgroundPosition = `${x}px ${y}px`;
                 
-                frame++;
+                if(isMoving) frame++;
             }, 150);
             
             sprite.addEventListener('click', () => {
