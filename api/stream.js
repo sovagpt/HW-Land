@@ -16,73 +16,73 @@ export default async function handler(request) {
 
     if (!gameState) {
       gameState = {
-        sprites: [
-            {
-                id: 'truman',
-                x: 500,
-                y: 500,
-                type: 'TrumanSprite',
-                isUnaware: true,
-                thoughts: [],
-                memories: []
-            },
-            {
-                id: 'sarah',
-                x: 450,
-                y: 450,
-                type: 'NPCSprite',
-                thoughts: [],
-                memories: []
-            },
-            {
-                id: 'michael',
-                x: 550,
-                y: 550,
-                type: 'NPCSprite',
-                thoughts: [],
-                memories: []
-            },
-            {
-                id: 'emma',
-                x: 400,
-                y: 500,
-                type: 'NPCSprite',
-                thoughts: [],
-                memories: []
-            },
-            {
-                id: 'james',
-                x: 600,
-                y: 400,
-                type: 'NPCSprite',
-                thoughts: [],
-                memories: []
-            },
-            {
-                id: 'olivia',
-                x: 500,
-                y: 600,
-                type: 'NPCSprite',
-                thoughts: [],
-                memories: []
-            },
-            {
-                id: 'william',
-                x: 350,
-                y: 350,
-                type: 'NPCSprite',
-                thoughts: [],
-                memories: []
-            },
-            {
-                id: 'sophia',
-                x: 650,
-                y: 650,
-                type: 'NPCSprite',
-                thoughts: [],
-                memories: []
-            }
-        ],
+    sprites: [
+        {
+            id: 'truman',
+            x: 500,
+            y: 500,
+            type: 'TrumanSprite',
+            isUnaware: true,
+            thoughts: [],
+            memories: []
+        },
+        {
+            id: 'sarah',
+            x: 450,
+            y: 450,
+            type: 'SarahSprite',
+            thoughts: [],
+            memories: []
+        },
+        {
+            id: 'michael',
+            x: 550,
+            y: 550,
+            type: 'MichaelSprite',
+            thoughts: [],
+            memories: []
+        },
+        {
+            id: 'emma',
+            x: 400,
+            y: 500,
+            type: 'EmmaSprite',
+            thoughts: [],
+            memories: []
+        },
+        {
+            id: 'james',
+            x: 600,
+            y: 400,
+            type: 'JamesSprite',
+            thoughts: [],
+            memories: []
+        },
+        {
+            id: 'olivia',
+            x: 500,
+            y: 600,
+            type: 'OliviaSprite',
+            thoughts: [],
+            memories: []
+        },
+        {
+            id: 'william',
+            x: 350,
+            y: 350,
+            type: 'WilliamSprite',
+            thoughts: [],
+            memories: []
+        },
+        {
+            id: 'sophia',
+            x: 650,
+            y: 650,
+            type: 'SophiaSprite',
+            thoughts: [],
+            memories: []
+        }
+    ],
         time: Date.now(),
         thoughts: [],
         currentEvent: null,
