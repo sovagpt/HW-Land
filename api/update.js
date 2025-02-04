@@ -43,14 +43,10 @@ function calculateMovement(sprite, targetSprite, gameState) {
   
   sprite.stateTimer--;
   
-  // Choose new state and target when timer expires
   if (sprite.stateTimer <= 0) {
-    // Much higher chance of being idle
     sprite.state = Math.random() < 0.2 ? 'moving' : 'idle';
-    // Longer timers - especially for idle state
     sprite.stateTimer = sprite.state === 'idle' ? 300 : 100;
     
-    // For Truman, occasionally choose an NPC to approach
     if (sprite.id === 'truman' && Math.random() < 0.4) {
       const npcs = gameState.sprites.filter(s => s.id !== 'truman');
       sprite.currentTarget = npcs[Math.floor(Math.random() * npcs.length)];
@@ -61,7 +57,6 @@ function calculateMovement(sprite, targetSprite, gameState) {
     return { momentumX: 0, momentumY: 0 };
   }
 
-  // If Truman has a target, move towards it
   if (sprite.id === 'truman' && sprite.currentTarget) {
     const targetDx = sprite.currentTarget.x - sprite.x;
     const targetDy = sprite.currentTarget.y - sprite.y;
@@ -82,8 +77,6 @@ function calculateMovement(sprite, targetSprite, gameState) {
 }
 
 async function generateDialogue(sprite1, sprite2) {
-  console.log('Generating dialogue between', sprite1.id, 'and', sprite2.id);
-  
   const isTrumanPresent = sprite2.id === 'truman';
   const recentThoughts = sprite2.conversations?.slice(-3) || [];
   const context = recentThoughts.length > 0 
@@ -105,20 +98,16 @@ async function generateDialogue(sprite1, sprite2) {
   }
 
   try {
-    console.log('Sending OpenAI request with prompt:', prompt);
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 30,
       temperature: 0.7,
     });
-    const dialogue = completion.choices[0].message.content;
-    console.log('Received dialogue:', dialogue);
-    
     return {
       speaker: sprite1.id,
       listener: sprite2.id,
-      content: dialogue,
+      content: completion.choices[0].message.content,
       timestamp: Date.now()
     };
   } catch (error) {
@@ -167,7 +156,7 @@ export default async function handler(request) {
                   id: 'sarah',
                   x: 450,
                   y: 450,
-                  type: 'NPCSprite',
+                  type: 'SarahSprite',
                   thoughts: [],
                   conversations: [],
                   memories: [],
@@ -178,7 +167,7 @@ export default async function handler(request) {
                   id: 'michael',
                   x: 550,
                   y: 550,
-                  type: 'NPCSprite',
+                  type: 'MichaelSprite',
                   thoughts: [],
                   conversations: [],
                   memories: [],
@@ -189,7 +178,7 @@ export default async function handler(request) {
                   id: 'emma',
                   x: 400,
                   y: 500,
-                  type: 'NPCSprite',
+                  type: 'EmmaSprite',
                   thoughts: [],
                   conversations: [],
                   memories: [],
@@ -200,7 +189,7 @@ export default async function handler(request) {
                   id: 'james',
                   x: 600,
                   y: 400,
-                  type: 'NPCSprite',
+                  type: 'JamesSprite',
                   thoughts: [],
                   conversations: [],
                   memories: [],
@@ -211,7 +200,7 @@ export default async function handler(request) {
                   id: 'olivia',
                   x: 500,
                   y: 600,
-                  type: 'NPCSprite',
+                  type: 'OliviaSprite',
                   thoughts: [],
                   conversations: [],
                   memories: [],
@@ -222,7 +211,7 @@ export default async function handler(request) {
                   id: 'william',
                   x: 350,
                   y: 350,
-                  type: 'NPCSprite',
+                  type: 'WilliamSprite',
                   thoughts: [],
                   conversations: [],
                   memories: [],
@@ -233,7 +222,7 @@ export default async function handler(request) {
                   id: 'sophia',
                   x: 650,
                   y: 650,
-                  type: 'NPCSprite',
+                  type: 'SophiaSprite',
                   thoughts: [],
                   conversations: [],
                   memories: [],
@@ -253,12 +242,9 @@ export default async function handler(request) {
   if (!gameState.sprites) {
       gameState.sprites = [];
   }
-  
 
-    // Process all sprites
     gameState.sprites = await Promise.all(gameState.sprites.map(async sprite => {
       if (sprite.id === 'truman') {
-        // Random wandering for Truman with occasional NPC targeting
         const targetSprite = sprite.currentTarget || {
           x: sprite.x + (Math.random() - 0.5) * 100,
           y: sprite.y + (Math.random() - 0.5) * 100
@@ -268,7 +254,6 @@ export default async function handler(request) {
         sprite.momentumX = momentumX;
         sprite.momentumY = momentumY;
       } else {
-        // NPCs either follow Truman or interact with other NPCs
         const truman = gameState.sprites.find(s => s.id === 'truman');
         const otherNPCs = gameState.sprites.filter(s => s.id !== sprite.id && s.id !== 'truman');
         const targetSprite = Math.random() < 0.3 ? truman : otherNPCs[Math.floor(Math.random() * otherNPCs.length)];
@@ -277,7 +262,6 @@ export default async function handler(request) {
         sprite.momentumX = momentumX;
         sprite.momentumY = momentumY;
 
-        // Generate dialogue when close
         const distance = Math.sqrt(
           Math.pow(targetSprite.x - sprite.x, 2) + 
           Math.pow(targetSprite.y - sprite.y, 2)
@@ -294,7 +278,6 @@ export default async function handler(request) {
             sprite.conversations.push(dialogue);
             targetSprite.conversations.push(dialogue);
             
-            // Keep last 50 conversations for game state and 10 for each sprite
             if (gameState.conversations.length > 50) {
               gameState.conversations = gameState.conversations.slice(-50);
             }
@@ -305,7 +288,6 @@ export default async function handler(request) {
               targetSprite.conversations = targetSprite.conversations.slice(-10);
             }
             
-            // Generate a response from the target sprite
             const response = await generateDialogue(targetSprite, sprite);
             if (response) {
               gameState.conversations.push(response);
