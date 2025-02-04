@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>AI World Stream</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
     <style>
         body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
         #gameContainer {
@@ -196,13 +197,14 @@
     top: 0;
     width: 400px;
     height: 100%;
-    background: rgb(0, 0, 0);
-    color: white;
-    font-family: 'Courier New', monospace;
-    font-size: 20px;
+    background: #f5e6d3;  /* Light beige background */
+    color: #8b0000;  /* Dark red text */
+    font-family: 'Press Start 2P', monospace;
+    font-size: 14px;
     z-index: 100;
     display: flex;
     flex-direction: column;
+    border-left: 8px solid #8b4513;  /* Wooden border style */
 }
         #votePanel {
             position: fixed;
@@ -231,24 +233,28 @@
         }
 
         .terminal-section {
-    background: rgb(0, 0, 0);
+    background: #f5e6d3;
     padding: 20px;
-    border-bottom: 2px solid rgb(40, 40, 40);
+    border-bottom: 4px solid #8b4513;  /* Wooden divider */
 }
 
 .terminal-section h2 {
     margin: 0 0 15px 0;
     padding: 0;
-    font-size: 24px;
+    font-size: 16px;
     font-weight: bold;
-    color: #00ff00;
+    color: #cc0000;  /* Brighter red for headers */
+    text-shadow: 2px 2px #00000020;
 }
 
 .thought-entry {
     padding: 10px;
-    margin: 5px 0;
-    background: rgba(255, 255, 255, 0.05);
-    border-left: 3px solid #00ff00;
+    margin: 8px 0;
+    background: #ffffff90;
+    border: 2px solid #8b4513;
+    font-size: 12px;
+    line-height: 1.5;
+    box-shadow: 2px 2px #00000020;
 }
 
 #thoughts-content {
@@ -262,7 +268,9 @@
 }
 
 .terminal-section:first-child {
-    border-bottom: 2px solid #00ff00;
+    background-image: linear-gradient(45deg, #8b451320 25%, transparent 25%), 
+                      linear-gradient(-45deg, #8b451320 25%, transparent 25%);
+    background-size: 20px 20px;
 }
         
         .npc-header {
