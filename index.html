@@ -26,6 +26,21 @@
     font-size: 12px;
     pointer-events: none;
 }
+
+.player-indicator {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background-image: url('/sprites/arrow.png');
+    image-rendering: pixelated;
+    animation: bounce 1s infinite;
+    z-index: 1001;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(-5px); }
+    50% { transform: translateY(-10px); }
+}
 .social-buttons {
     position: absolute;
     bottom: 20px;
@@ -576,6 +591,12 @@ document.body.insertAdjacentHTML('beforeend', socialButtons);
             sprite.style.top = `${data.y}px`;
             sprite.style.cursor = 'pointer';
             
+            if (data.id === 'truman') {
+                const indicator = document.createElement('div');
+                indicator.className = 'player-indicator';
+                sprite.appendChild(indicator);
+            }
+            
             let frame = 0;
             sprite.dataset.animationRow = 0;
             
@@ -583,7 +604,6 @@ document.body.insertAdjacentHTML('beforeend', socialButtons);
                 const row = parseInt(sprite.dataset.animationRow || 0);
                 const isMoving = Math.abs(sprite.momentumX) > 0.1 || Math.abs(sprite.momentumY) > 0.1;
                 
-                // If moving use frames 1-4, if idle use frames 0-1 for bobbing
                 const x = isMoving ? 
                     -((frame % 4 + 1) * 32) : 
                     -((frame % 2) * 32);
