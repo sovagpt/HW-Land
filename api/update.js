@@ -77,7 +77,7 @@ function calculateMovement(sprite, targetSprite, gameState) {
 }
 
 async function generateDialogue(sprite1, sprite2) {
-  const isTrumanPresent = sprite2.id === 'truman';
+  const isTrumanPresent = sprite1.id === 'truman' || sprite2.id === 'truman';
   const recentThoughts = sprite2.conversations?.slice(-3) || [];
   const context = recentThoughts.length > 0 
     ? `Recent conversation: ${recentThoughts.map(c => `${c.speaker}: ${c.content}`).join('. ')}` 
@@ -85,10 +85,11 @@ async function generateDialogue(sprite1, sprite2) {
 
   let prompt;
   if (isTrumanPresent) {
-    prompt = `You are ${sprite1.id}, talking casually with Truman. ${context}
-     Have a friendly, normal conversation that doesn't raise suspicion.
-     Respond as if speaking directly to him, max 20 words.`;
-} else {
+    prompt = `You are ${sprite1.id}, having a casual conversation with ${sprite2.id}. ${context}
+     Have a friendly, normal conversation about daily life in town.
+     Examples: "Beautiful day isn't it?", "Have you tried the new coffee shop?"
+     Respond as if speaking directly, max 20 words.`;
+  } else {
     prompt = `You are ${sprite1.id} having a secretive conversation with ${sprite2.id} about Truman.
      You're both actors in a reality show Truman doesn't know about.
      ${context}
@@ -96,7 +97,7 @@ async function generateDialogue(sprite1, sprite2) {
      Make it sound natural, like real people talking, not robots.
      Example: "Did you see how he looked at the sky yesterday? I'm worried he's starting to notice..."
      Respond as if speaking directly to ${sprite2.id}, max 20 words.`;
-}
+  }
 
   try {
     const completion = await openai.chat.completions.create({
