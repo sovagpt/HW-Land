@@ -270,8 +270,10 @@
     margin: 8px 0;
     background: #ffffff90;
     border: 2px solid #8b4513;
-    font-size: 12px;
+    font-size: 0.8em;
+    color: #666;
     line-height: 1.5;
+    margin-bottom: 5px;
     box-shadow: 2px 2px #00000020;
 }
 
@@ -335,6 +337,7 @@
         .timestamp {
             font-size: 0.8em;
             color: #666;
+            margin-bottom: 5px;
         }
         #debug {
             position: fixed;
@@ -631,8 +634,10 @@ document.body.insertAdjacentHTML('beforeend', socialButtons);
         const lastThought = newState.thoughts[newState.thoughts.length - 1];
         if (thoughtsContent && lastThought.spriteId === 'truman' && !displayedThoughts.has(lastThought.thought)) {
             displayedThoughts.add(lastThought.thought);
+            const timestamp = new Date(lastThought.timestamp).toLocaleString();
             thoughtsContent.innerHTML += `
                 <div class="thought-entry">
+                    <div class="timestamp">${timestamp}</div>
                     ${lastThought.thought}
                 </div>
             `;
