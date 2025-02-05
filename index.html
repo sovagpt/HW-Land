@@ -738,7 +738,6 @@ async function loadPreviousThoughts() {
 }
 
 function showThoughtHistory(spriteData) {
-    // Remove any existing profile window
     const existingProfile = document.querySelector('.npc-profile');
     if (existingProfile) {
         existingProfile.remove();
@@ -747,7 +746,6 @@ function showThoughtHistory(spriteData) {
     const profile = document.createElement('div');
     profile.className = 'npc-profile';
 
-    // Get NPC description based on ID
     const npcDescription = getNPCDescription(spriteData.id);
 
     profile.innerHTML = `
@@ -755,8 +753,19 @@ function showThoughtHistory(spriteData) {
             <span>${spriteData.id.toUpperCase()}</span>
             <button class="npc-close" onclick="this.parentElement.parentElement.remove()">×</button>
         </div>
-        <div class="npc-description">
-            ${npcDescription}
+        <div class="npc-content">
+            <div class="npc-sprite-preview">
+                <div class="sprite" style="
+                    width: 32px;
+                    height: 32px;
+                    background-image: url('/sprites/${spriteData.type}.png');
+                    background-size: 928px 256px;
+                    image-rendering: pixelated;
+                "></div>
+            </div>
+            <div class="npc-description">
+                ${npcDescription}
+            </div>
         </div>
         <div class="npc-conversations">
             ${gameState.conversations
@@ -767,7 +776,12 @@ function showThoughtHistory(spriteData) {
                         <div class="timestamp">
                             ${new Date(conv.timestamp).toLocaleString()}
                         </div>
-                        <strong>${conv.speaker}:</strong> ${conv.content}
+                        <div class="conversation-speaker">
+                            ${conv.speaker}:
+                        </div>
+                        <div class="conversation-message">
+                            ${conv.content}
+                        </div>
                     </div>
                 `).join('')}
         </div>
