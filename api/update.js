@@ -171,7 +171,7 @@ export default async function handler(request) {
           sprites: [
               {
                   id: 'truman',
-                  x: 500,
+                  x: 450,
                   y: 500,
                   type: 'TrumanSprite',
                   isUnaware: true,
@@ -262,7 +262,7 @@ export default async function handler(request) {
               },
               {
                   id: 'william',
-                  x: 350,
+                  x: 250,
                   y: 350,
                   type: 'WilliamSprite',
                   thoughts: [],
