@@ -475,11 +475,28 @@
             <div id="thoughts-content"></div>
         </div>
     </div>
-    <div id="votePanel">
-        <h3>Vote on next major event:</h3>
-        <div id="voteOptions"></div>
+    <div id="voting-panel" class="fixed bottom-0 right-80 bg-black/80 text-white p-4 w-64">
+  <h3 class="text-lg mb-4">Vote on next major event:</h3>
+  <div id="vote-timer" class="mb-2"></div>
+  <div id="vote-options" class="flex flex-col gap-2">
+    <div class="vote-option">
+      <button class="bg-red-500 p-2 w-full rounded" onclick="vote('deforestation')">Deforestation</button>
+      <span class="vote-count">0</span>
     </div>
-    <div id="debug"></div>
+    <div class="vote-option">
+      <button class="bg-orange-500 p-2 w-full rounded" onclick="vote('town_fire')">Town Fire</button>
+      <span class="vote-count">0</span>
+    </div>
+    <div class="vote-option">
+      <button class="bg-blue-500 p-2 w-full rounded" onclick="vote('web_access')">Web Access</button>
+      <span class="vote-count">0</span>
+    </div>
+    <div class="vote-option">
+      <button class="bg-purple-500 p-2 w-full rounded" onclick="vote('npc_accident')">NPC Accident</button>
+      <span class="vote-count">0</span>
+    </div>
+  </div>
+</div>
 
     <script>
 
@@ -1129,6 +1146,17 @@ function moveMap(direction) {
             break;
     }
 }
+
+function updateVoteTimer() {
+    if (gameState.activeVoting && gameState.voteStartTime) {
+      const timeLeft = 24*60*60*1000 - (Date.now() - gameState.voteStartTime);
+      const hours = Math.floor(timeLeft / (60*60*1000));
+      const minutes = Math.floor((timeLeft % (60*60*1000)) / (60*1000));
+      document.getElementById('vote-timer').textContent = `${hours}h ${minutes}m remaining`;
+    }
+  }
+  
+  setInterval(updateVoteTimer, 1000);
 function showSpeechBubble(spriteId, text) {
     console.log("Show speech bubble called for:", spriteId, text);
     
