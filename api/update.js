@@ -19,6 +19,46 @@ export const config = {
   runtime: 'edge'
 }
 
+function selectNewTopic(sprite1, sprite2, isTrumanPresent) {
+  const topics = isTrumanPresent ? [
+    'local events', 'hobbies', 'weather', 'town life', 
+    'daily activities', 'community news'
+  ] : [
+    'show logistics', 'token performance', 'simulation maintenance',
+    'personal matters', 'production issues'
+  ];
+
+  const usedTopics = new Set(sprite1.recentTopics || []);
+  const availableTopics = topics.filter(t => !usedTopics.has(t));
+  const newTopic = availableTopics[Math.floor(Math.random() * availableTopics.length)] || topics[0];
+  
+  if (!sprite1.recentTopics) sprite1.recentTopics = [];
+  sprite1.recentTopics.push(newTopic);
+  if (sprite1.recentTopics.length > 3) sprite1.recentTopics.shift();
+  
+  return newTopic;
+}
+
+function updateRelationships(sprite1, sprite2, content) {
+  if (!sprite1.relationships) sprite1.relationships = {};
+  if (!sprite1.relationships[sprite2.id]) {
+    sprite1.relationships[sprite2.id] = 'neutral';
+  }
+
+  const moodKeywords = {
+    positive: ['happy', 'great', 'wonderful', 'agree', 'yes'],
+    negative: ['concerned', 'worried', 'disagree', 'no', 'problem']
+  };
+
+  const sentiment = Object.entries(moodKeywords).find(([mood, words]) =>
+    words.some(word => content.toLowerCase().includes(word))
+  )?.[0] || 'neutral';
+
+  sprite1.currentMood = sentiment;
+  sprite1.lastInteraction = sprite1.lastInteraction || {};
+  sprite1.lastInteraction[sprite2.id] = Date.now();
+}
+
 function checkCollision(x, y) {
   const forbiddenAreas = [
     { x: 300, y: 0, width: 100, height: 960 }, // River
@@ -88,10 +128,10 @@ function calculateMovement(sprite, targetSprite, gameState) {
 
 async function generateDialogue(sprite1, sprite2) {
   const isTrumanPresent = sprite1.id === 'truman' || sprite2.id === 'truman';
-  const recentThoughts = sprite2.conversations?.slice(-3) || [];
-  const context = recentThoughts.length > 0 
-    ? `Recent conversation: ${recentThoughts.map(c => `${c.speaker}: ${c.content}`).join('. ')}` 
-    : '';
+  const recentHistory = (gameState.conversationHistory || [])
+    .filter(c => (c.speaker === sprite1.id && c.listener === sprite2.id) || 
+                 (c.speaker === sprite2.id && c.listener === sprite1.id))
+    .slice(-5);
 
   const npcRoles = {
     sarah: "village elder, wise and philosophical",
@@ -103,80 +143,88 @@ async function generateDialogue(sprite1, sprite2) {
     sophia: "storyteller, creative and imaginative"
   };
 
+  const currentTopic = sprite1.recentTopics?.[sprite1.recentTopics.length - 1] || 
+                      selectNewTopic(sprite1, sprite2, isTrumanPresent);
+  const mood = sprite1.currentMood || 'neutral';
+  const relationship = (sprite1.relationships || {})[sprite2.id] || 'neutral';
+  const context = recentHistory.length > 0 
+    ? `Recent conversation:\n${recentHistory.map(h => `${h.speaker}: ${h.content}`).join('\n')}` 
+    : '';
+
   let prompt;
   if (isTrumanPresent) {
-    prompt = `You are ${sprite1.id}, having a casual conversation with ${sprite2.id}. ${context}
+    prompt = `You are ${sprite1.id} (${npcRoles[sprite1.id] || ''}), having a conversation with ${sprite2.id}.
+     Current topic: ${currentTopic}
+     ${context}
+     Your mood: ${mood}
+     Your relationship with them: ${relationship}
      Have a friendly, normal conversation about daily life in town.
      Topics: local events, hobbies, weather, town life, personal stories, or daily activities.
      Examples: 
      - "The flower festival is coming up next month. Will you be entering your roses again?"
      - "Have you tried the new bakery in town?"
-     Keep responses brief and natural, but ensure complete sentences.`;
+     Reference previous messages if relevant.
+     Keep responses brief and natural.`;
   } else {
     const conversationTypes = [
-        // Meta topics (30%)
-        'show logistics',
-        'token performance',
-        'simulation maintenance',
-        // Mixed topics (40%)
-        'personal chat with show context',
-        'town planning with production elements',
-        'daily life with meta references',
-        'local events with hidden meanings',
-        // Regular topics (30%)
-        'break time chat',
-        'genuine concerns',
-        'actual local news',
-        'real personal matters'
+        'show logistics', 'token performance', 'simulation maintenance',
+        'personal chat with show context', 'town planning with production elements',
+        'daily life with meta references', 'local events with hidden meanings',
+        'break time chat', 'genuine concerns', 'actual local news', 'real personal matters'
     ];
     const convoType = conversationTypes[Math.floor(Math.random() * conversationTypes.length)];
 
-    prompt = `You are ${sprite1.id} having a private conversation with ${sprite2.id}.
-     You're both actors in a reality show, and sometimes discuss that Truman is also a crypto token.
-     Current topic: ${convoType}
-     Keep it natural and varied:
-     - Sometimes mention the show, cameras, or token directly
-     - Other times just have normal coworker conversations
-     - Mix in genuine personal conversations
-     - Vary between meta talk and regular chat
-     
-     Examples of different styles:
+    prompt = `You are ${sprite1.id} (${npcRoles[sprite1.id]}) speaking privately with ${sprite2.id}.
+     Current topic: ${currentTopic || convoType}
+     ${context}
+     Your mood: ${mood}
+     Your relationship with them: ${relationship}
+     You're both actors in Truman's show, and he's also a crypto token.
+     Mix show logistics with natural conversation.
+     Examples:
      - Meta: "The engagement metrics from last week's 'random' encounter were fantastic."
      - Mixed: "My sister's visiting next week - hope she doesn't mess up any scenes."
-     - Regular: "This new coffee blend is amazing, you should try it."
-     - Show-related: "Getting tired of pretending to be a librarian, might ask for a role change."
      - Crypto-casual: "The pump groups are getting restless, but what can we do?"
-     
-     Keep responses brief and natural.`;
-}
+     Reference previous context when appropriate.`;
+  }
 
-try {
-  const completion = await openai.chat.completions.create({
+  try {
+    const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 75,
       temperature: 0.8,
-  });
+    });
 
-  // Clean up the response content
-  let content = completion.choices[0].message.content;
-  content = content
-      .split('\n')[0]  // Take only first line
-      .replace(/^[^:]*:\s*/, '')  // Remove "Name:" prefix
-      .replace(/\s+[^:]*:.*$/, '') // Remove any replies
-      .replace(/^["']|["']$/g, '') // Remove surrounding quotes
+    const content = completion.choices[0].message.content
+      .split('\n')[0]
+      .replace(/^[^:]*:\s*/, '')
+      .replace(/\s+[^:]*:.*$/, '')
+      .replace(/^["']|["']$/g, '')
       .trim();
 
-  return {
+    updateRelationships(sprite1, sprite2, content);
+
+    const dialogue = {
       speaker: sprite1.id,
       listener: sprite2.id,
-      content: content,
+      content,
+      topic: currentTopic,
+      mood: sprite1.currentMood,
       timestamp: Date.now()
-  };
-} catch (error) {
-  console.error('Dialogue generation error:', error);
-  return null;
-}
+    };
+
+    if (!gameState.conversationHistory) gameState.conversationHistory = [];
+    gameState.conversationHistory.push(dialogue);
+    if (gameState.conversationHistory.length > 50) {
+      gameState.conversationHistory = gameState.conversationHistory.slice(-50);
+    }
+
+    return dialogue;
+  } catch (error) {
+    console.error('Dialogue generation error:', error);
+    return null;
+  }
 }
 
 export default async function handler(request) {
@@ -213,7 +261,11 @@ export default async function handler(request) {
                   conversations: [],
                   memories: [],
                   momentumX: 0,
-                  momentumY: 0
+                  momentumY: 0,
+                  currentMood: 'neutral',
+                  recentTopics: [],
+                  relationships: {},
+                  lastInteraction: {}
               },
               {
                   id: 'sarah',
@@ -224,7 +276,11 @@ export default async function handler(request) {
                   conversations: [],
                   memories: [],
                   momentumX: 0,
-                  momentumY: 0
+                  momentumY: 0,
+                  currentMood: 'neutral',
+                  recentTopics: [],
+                  relationships: {},
+                  lastInteraction: {}
               },
               {
                   id: 'michael',
@@ -235,7 +291,11 @@ export default async function handler(request) {
                   conversations: [],
                   memories: [],
                   momentumX: 0,
-                  momentumY: 0
+                  momentumY: 0,
+                  currentMood: 'neutral',
+                  recentTopics: [],
+                  relationships: {},
+                  lastInteraction: {}
               },
               {
                   id: 'emma',
@@ -246,7 +306,11 @@ export default async function handler(request) {
                   conversations: [],
                   memories: [],
                   momentumX: 0,
-                  momentumY: 0
+                  momentumY: 0,
+                  currentMood: 'neutral',
+                  recentTopics: [],
+                  relationships: {},
+                  lastInteraction: {}
               },
               {
                   id: 'james',
@@ -257,7 +321,11 @@ export default async function handler(request) {
                   conversations: [],
                   memories: [],
                   momentumX: 0,
-                  momentumY: 0
+                  momentumY: 0,
+                  currentMood: 'neutral',
+                  recentTopics: [],
+                  relationships: {},
+                  lastInteraction: {}
               },
               {
                   id: 'olivia',
@@ -268,7 +336,11 @@ export default async function handler(request) {
                   conversations: [],
                   memories: [],
                   momentumX: 0,
-                  momentumY: 0
+                  momentumY: 0,
+                  currentMood: 'neutral',
+                  recentTopics: [],
+                  relationships: {},
+                  lastInteraction: {}
               },
               {
                   id: 'william',
@@ -279,7 +351,11 @@ export default async function handler(request) {
                   conversations: [],
                   memories: [],
                   momentumX: 0,
-                  momentumY: 0
+                  momentumY: 0,
+                  currentMood: 'neutral',
+                  recentTopics: [],
+                  relationships: {},
+                  lastInteraction: {}
               },
               {
                   id: 'sophia',
@@ -290,17 +366,26 @@ export default async function handler(request) {
                   conversations: [],
                   memories: [],
                   momentumX: 0,
-                  momentumY: 0
+                  momentumY: 0,
+                  currentMood: 'neutral',
+                  recentTopics: [],
+                  relationships: {},
+                  lastInteraction: {}
               }
           ],
           time: Date.now(),
           thoughts: [],
           conversations: [],
+          conversationHistory: [],
+          currentTopic: null,
+          topicDuration: 0,
+          relationships: {},
+          moodStates: {},
           currentEvent: null,
           votes: {},
           activeVoting: false
       }
-  }
+    }
   
   if (!gameState.sprites) {
       gameState.sprites = [];
