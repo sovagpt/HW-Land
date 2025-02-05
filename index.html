@@ -802,6 +802,11 @@ function showThoughtHistory(spriteData) {
                 ? `<span class="dialogue-direction">To ${conv.listener}:</span>`
                 : `<span class="dialogue-direction">From ${conv.speaker}:</span>`;
             
+            // Clean up the content by removing speaker prefix and quotes
+            const cleanContent = conv.content
+                .replace(/^["']|["']$/g, '')  // Remove surrounding quotes
+                .replace(/^[^:]*:\s*/, '');   // Remove "Speaker:" prefix
+
             return `
                 <div class="conversation-entry ${isOutgoing ? 'outgoing' : 'incoming'}">
                     <div class="timestamp">
@@ -810,7 +815,7 @@ function showThoughtHistory(spriteData) {
                     <div class="conversation-text">
                         ${directionLabel}
                         <div class="dialogue-content">
-                            ${conv.content.replace(/^["']|["']$/g, '')}
+                            ${cleanContent}
                         </div>
                     </div>
                 </div>
