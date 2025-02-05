@@ -1,3 +1,4 @@
+
 // api/update.js
 import { Redis } from '@upstash/redis'
 import OpenAI from 'openai';
@@ -82,23 +83,23 @@ async function generateDialogue(sprite1, sprite2) {
   const context = recentThoughts.length > 0 
     ? `Recent conversation: ${recentThoughts.map(c => `${c.speaker}: ${c.content}`).join('. ')}` 
     : '';
-
+ 
   const npcRoles = {
     sarah: "village elder, wise and philosophical",
-    michael: "shopkeeper, knows town gossip",
+    michael: "shopkeeper, knows town gossip", 
     emma: "friendly neighbor, loves gardening",
     james: "historian, interested in old stories",
     olivia: "scientist, observant and analytical",
     william: "gardener, nature enthusiast",
     sophia: "storyteller, creative and imaginative"
   };
-
+ 
   let prompt;
   if (isTrumanPresent) {
     prompt = `You are ${sprite1.id}, having a casual conversation with ${sprite2.id}. ${context}
      Have a friendly, normal conversation about daily life in town.
      Topics: local events, hobbies, weather, town life, personal stories, or daily activities.
-     Examples: 
+     Examples:
      - "The flower festival is coming up next month. Will you be entering your roses again?"
      - "Have you tried the new bakery in town?"
      Keep responses brief and natural, but ensure complete sentences.`;
@@ -106,7 +107,7 @@ async function generateDialogue(sprite1, sprite2) {
     const conversationTypes = [
         // Meta topics (30%)
         'show logistics',
-        'token performance',
+        'token performance', 
         'simulation maintenance',
         // Mixed topics (40%)
         'personal chat with show context',
@@ -120,7 +121,7 @@ async function generateDialogue(sprite1, sprite2) {
         'real personal matters'
     ];
     const convoType = conversationTypes[Math.floor(Math.random() * conversationTypes.length)];
-
+ 
     prompt = `You are ${sprite1.id} having a private conversation with ${sprite2.id}.
      You're both actors in a reality show, and sometimes discuss that Truman is also a crypto token.
      Current topic: ${convoType}
@@ -138,26 +139,39 @@ async function generateDialogue(sprite1, sprite2) {
      - Crypto-casual: "The pump groups are getting restless, but what can we do?"
      
      Keep responses brief and natural.`;
-}
-
+  }
+ 
   try {
     const completion = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 75,
-        temperature: 0.8,
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 75,
+      temperature: 0.8,
     });
+ 
+    // Clean up the response content
+    let content = completion.choices[0].message.content;
+    
+    // Remove any name prefixes and responses
+    content = content
+      .split('\n')[0]  // Take only first line
+      .replace(/^[^:]*:\s*/, '')  // Remove "Name:" prefix
+      .replace(/\s+[^:]*:.*$/, '') // Remove any replies
+      .replace(/^["']|["']$/g, '') // Remove surrounding quotes
+      .replace(/(.*?)\s*\w+:\s*.*$/, '$1') // Remove anything after another name appears
+      .trim();
+ 
     return {
-        speaker: sprite1.id,
-        listener: sprite2.id,
-        content: completion.choices[0].message.content,
-        timestamp: Date.now()
+      speaker: sprite1.id,
+      listener: sprite2.id,
+      content: content,
+      timestamp: Date.now()
     };
   } catch (error) {
     console.error('Dialogue generation error:', error);
     return null;
   }
-}
+ }
 
 export default async function handler(request) {
   if (request.method === 'OPTIONS') {
@@ -377,33 +391,38 @@ export default async function handler(request) {
       if (distance < 80 && sprite.state === 'idle' && Math.random() < 0.3) {
         const dialogue = await generateDialogue(sprite, targetSprite);
         if (dialogue) {
-          console.log("Generated dialogue:", dialogue);
-          if (!gameState.conversations) gameState.conversations = [];
-          if (!sprite.conversations) sprite.conversations = [];
-          if (!targetSprite.conversations) targetSprite.conversations = [];
-          
-          gameState.conversations.push(dialogue);
-          sprite.conversations.push(dialogue);
-          targetSprite.conversations.push(dialogue);
-          
-          if (gameState.conversations.length > 50) {
-            gameState.conversations = gameState.conversations.slice(-50);
-          }
-          if (sprite.conversations.length > 10) {
-            sprite.conversations = sprite.conversations.slice(-10);
-          }
-          if (targetSprite.conversations.length > 10) {
-            targetSprite.conversations = targetSprite.conversations.slice(-10);
-          }
-          
-          const response = await generateDialogue(targetSprite, sprite);
-          if (response) {
-            gameState.conversations.push(response);
-            sprite.conversations.push(response);
-            targetSprite.conversations.push(response);
-          }
+            console.log("Generated dialogue:", dialogue);
+            if (!gameState.conversations) gameState.conversations = [];
+            if (!sprite.conversations) sprite.conversations = [];
+            if (!targetSprite.conversations) targetSprite.conversations = [];
+            
+            // Add first message
+            gameState.conversations.push(dialogue);
+            sprite.conversations.push(dialogue);
+            targetSprite.conversations.push(dialogue);
+    
+            // Generate and add response
+            const response = await generateDialogue(targetSprite, sprite);
+            if (response) {
+                // Delay the response slightly
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                gameState.conversations.push(response);
+                sprite.conversations.push(response);
+                targetSprite.conversations.push(response);
+            }
+    
+            // Manage conversation history lengths
+            if (gameState.conversations.length > 50) {
+                gameState.conversations = gameState.conversations.slice(-50);
+            }
+            if (sprite.conversations.length > 10) {
+                sprite.conversations = sprite.conversations.slice(-10);
+            }
+            if (targetSprite.conversations.length > 10) {
+                targetSprite.conversations = targetSprite.conversations.slice(-10);
+            }
         }
-      }
     }
 
       let newX = Math.max(50, Math.min(910, sprite.x + sprite.momentumX));
