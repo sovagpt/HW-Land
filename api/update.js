@@ -81,7 +81,7 @@ function calculateMovement(sprite, targetSprite, gameState) {
   const movement = Math.abs(sprite.x - sprite.lastPosition.x) + Math.abs(sprite.y - sprite.lastPosition.y);
   if (movement < 1) {
     sprite.stuckTimer++;
-    if (sprite.stuckTimer > 20) {
+    if (sprite.stuckTimer > 10) {
       sprite.currentTarget = {
         x: Math.random() * 900 + 50,
         y: Math.random() * 900 + 50
