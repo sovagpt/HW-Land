@@ -95,39 +95,38 @@ async function generateDialogue(sprite1, sprite2) {
   };
 
   let prompt;
-  if (isTrumanPresent) {
-    prompt = `You are ${sprite1.id} (${npcRoles[sprite1.id]}), having a casual conversation with ${sprite2.id}. ${context}
-     Have a natural, friendly conversation that fits your role.
+if (isTrumanPresent) {
+    prompt = `You are ${sprite1.id}, having a casual conversation with ${sprite2.id}. ${context}
+     Have a friendly, normal conversation about daily life in town.
      Topics: local events, hobbies, weather, town life, personal stories, or daily activities.
      Examples: 
      - "The flower festival is coming up next month. Will you be entering your roses again?"
-     - "That new café downtown makes the most amazing pastries."
-     - "Have you seen the northern lights lately? They've been spectacular."
+     - "Have you tried the new bakery in town?"
      Respond as if speaking directly, max 20 words.`;
-  } else {
+} else {
     // Random conversation type to vary dialogue
     const conversationTypes = [
-      'discussing town maintenance',
-      'sharing personal concerns',
-      'planning community events',
-      'discussing the show logistics',
-      'talking about Truman',
-      'sharing town gossip'
+        'discussing show logistics',
+        'sharing concerns about Truman',
+        'planning next scene',
+        'crypto meta discussion',
+        'worrying about Truman',
+        'discussing simulation maintenance'
     ];
     const convoType = conversationTypes[Math.floor(Math.random() * conversationTypes.length)];
 
-    prompt = `You are ${sprite1.id} (${npcRoles[sprite1.id]}) having a private conversation with ${sprite2.id} (${npcRoles[sprite2.id]}).
-     You're both actors in a reality show, but make it sound natural.
+    prompt = `You are ${sprite1.id} having a private conversation with ${sprite2.id}.
+     You're both actors in a reality show, and Truman is also unknowingly a crypto token on Pump.fun.
      Current topic: ${convoType}
      Examples based on topic:
-     - Town maintenance: "We need to fix that flickering streetlight before tonight's shoot."
-     - Personal: "It's hard maintaining this double life sometimes..."
-     - Events: "Should we schedule the art fair before or after next week's scene?"
-     - Logistics: "Camera 3 needs adjusting, but wait until the evening shift."
-     - About Truman: "He seemed distracted during our conversation earlier..."
-     - Gossip: "Did you hear about the new director coming next month?"
-     Respond naturally as your character speaking to ${sprite2.id}, max 20 words.`;
-  }
+     - Show logistics: "Camera 3 needs adjusting before the next scene."
+     - Concerns: "He's getting more suspicious every day, we need to be careful."
+     - Planning: "Let's stage the art fair scene after he leaves work."
+     - Crypto meta: "Poor thing has no idea he's a meme token on Pump.fun..."
+     - Worrying: "Have you seen his token price lately? The holders are getting anxious."
+     - Simulation: "The NPCs in sector 7 need their routines updated."
+     Make it sound natural, mix show logistics with crypto-meta references. Max 20 words.`;
+}
 
   try {
     const completion = await openai.chat.completions.create({
