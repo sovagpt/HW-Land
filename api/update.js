@@ -126,107 +126,6 @@ function calculateMovement(sprite, targetSprite, gameState) {
   };
 }
 
-async function generateDialogue(sprite1, sprite2) {
-  const isTrumanPresent = sprite1.id === 'truman' || sprite2.id === 'truman';
-  const recentHistory = (gameState.conversationHistory || [])
-    .filter(c => (c.speaker === sprite1.id && c.listener === sprite2.id) || 
-                 (c.speaker === sprite2.id && c.listener === sprite1.id))
-    .slice(-5);
-
-  const npcRoles = {
-    sarah: "village elder, wise and philosophical",
-    michael: "shopkeeper, knows town gossip",
-    emma: "friendly neighbor, loves gardening",
-    james: "historian, interested in old stories",
-    olivia: "scientist, observant and analytical",
-    william: "gardener, nature enthusiast",
-    sophia: "storyteller, creative and imaginative"
-  };
-
-  const currentTopic = sprite1.recentTopics?.[sprite1.recentTopics.length - 1] || 
-                      selectNewTopic(sprite1, sprite2, isTrumanPresent);
-  const mood = sprite1.currentMood || 'neutral';
-  const relationship = (sprite1.relationships || {})[sprite2.id] || 'neutral';
-  const context = recentHistory.length > 0 
-    ? `Recent conversation:\n${recentHistory.map(h => `${h.speaker}: ${h.content}`).join('\n')}` 
-    : '';
-
-  let prompt;
-  if (isTrumanPresent) {
-    prompt = `You are ${sprite1.id} (${npcRoles[sprite1.id] || ''}), having a conversation with ${sprite2.id}.
-     Current topic: ${currentTopic}
-     ${context}
-     Your mood: ${mood}
-     Your relationship with them: ${relationship}
-     Have a friendly, normal conversation about daily life in town.
-     Topics: local events, hobbies, weather, town life, personal stories, or daily activities.
-     Examples: 
-     - "The flower festival is coming up next month. Will you be entering your roses again?"
-     - "Have you tried the new bakery in town?"
-     Reference previous messages if relevant.
-     Keep responses brief and natural.`;
-  } else {
-    const conversationTypes = [
-        'show logistics', 'token performance', 'simulation maintenance',
-        'personal chat with show context', 'town planning with production elements',
-        'daily life with meta references', 'local events with hidden meanings',
-        'break time chat', 'genuine concerns', 'actual local news', 'real personal matters'
-    ];
-    const convoType = conversationTypes[Math.floor(Math.random() * conversationTypes.length)];
-
-    prompt = `You are ${sprite1.id} (${npcRoles[sprite1.id]}) speaking privately with ${sprite2.id}.
-     Current topic: ${currentTopic || convoType}
-     ${context}
-     Your mood: ${mood}
-     Your relationship with them: ${relationship}
-     You're both actors in Truman's show, and he's also a crypto token.
-     Mix show logistics with natural conversation.
-     Examples:
-     - Meta: "The engagement metrics from last week's 'random' encounter were fantastic."
-     - Mixed: "My sister's visiting next week - hope she doesn't mess up any scenes."
-     - Crypto-casual: "The pump groups are getting restless, but what can we do?"
-     Reference previous context when appropriate.`;
-  }
-
-  try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: 75,
-      temperature: 0.8,
-    });
-
-    const content = completion.choices[0].message.content
-      .split('\n')[0]
-      .replace(/^[^:]*:\s*/, '')
-      .replace(/\s+[^:]*:.*$/, '')
-      .replace(/^["']|["']$/g, '')
-      .trim();
-
-    updateRelationships(sprite1, sprite2, content);
-
-    const dialogue = {
-      speaker: sprite1.id,
-      listener: sprite2.id,
-      content,
-      topic: currentTopic,
-      mood: sprite1.currentMood,
-      timestamp: Date.now()
-    };
-
-    if (!gameState.conversationHistory) gameState.conversationHistory = [];
-    gameState.conversationHistory.push(dialogue);
-    if (gameState.conversationHistory.length > 50) {
-      gameState.conversationHistory = gameState.conversationHistory.slice(-50);
-    }
-
-    return dialogue;
-  } catch (error) {
-    console.error('Dialogue generation error:', error);
-    return null;
-  }
-}
-
 export default async function handler(request) {
   if (request.method === 'OPTIONS') {
     return new Response(null, {
@@ -384,6 +283,107 @@ export default async function handler(request) {
           currentEvent: null,
           votes: {},
           activeVoting: false
+      }
+    }
+
+    async function generateDialogue(sprite1, sprite2) {
+      const isTrumanPresent = sprite1.id === 'truman' || sprite2.id === 'truman';
+      const recentHistory = (gameState.conversationHistory || [])
+        .filter(c => (c.speaker === sprite1.id && c.listener === sprite2.id) || 
+                     (c.speaker === sprite2.id && c.listener === sprite1.id))
+        .slice(-5);
+    
+      const npcRoles = {
+        sarah: "village elder, wise and philosophical",
+        michael: "shopkeeper, knows town gossip",
+        emma: "friendly neighbor, loves gardening",
+        james: "historian, interested in old stories",
+        olivia: "scientist, observant and analytical",
+        william: "gardener, nature enthusiast",
+        sophia: "storyteller, creative and imaginative"
+      };
+    
+      const currentTopic = sprite1.recentTopics?.[sprite1.recentTopics.length - 1] || 
+                          selectNewTopic(sprite1, sprite2, isTrumanPresent);
+      const mood = sprite1.currentMood || 'neutral';
+      const relationship = (sprite1.relationships || {})[sprite2.id] || 'neutral';
+      const context = recentHistory.length > 0 
+        ? `Recent conversation:\n${recentHistory.map(h => `${h.speaker}: ${h.content}`).join('\n')}` 
+        : '';
+    
+      let prompt;
+      if (isTrumanPresent) {
+        prompt = `You are ${sprite1.id} (${npcRoles[sprite1.id] || ''}), having a conversation with ${sprite2.id}.
+         Current topic: ${currentTopic}
+         ${context}
+         Your mood: ${mood}
+         Your relationship with them: ${relationship}
+         Have a friendly, normal conversation about daily life in town.
+         Topics: local events, hobbies, weather, town life, personal stories, or daily activities.
+         Examples: 
+         - "The flower festival is coming up next month. Will you be entering your roses again?"
+         - "Have you tried the new bakery in town?"
+         Reference previous messages if relevant.
+         Keep responses brief and natural.`;
+      } else {
+        const conversationTypes = [
+            'show logistics', 'token performance', 'simulation maintenance',
+            'personal chat with show context', 'town planning with production elements',
+            'daily life with meta references', 'local events with hidden meanings',
+            'break time chat', 'genuine concerns', 'actual local news', 'real personal matters'
+        ];
+        const convoType = conversationTypes[Math.floor(Math.random() * conversationTypes.length)];
+    
+        prompt = `You are ${sprite1.id} (${npcRoles[sprite1.id]}) speaking privately with ${sprite2.id}.
+         Current topic: ${currentTopic || convoType}
+         ${context}
+         Your mood: ${mood}
+         Your relationship with them: ${relationship}
+         You're both actors in Truman's show, and he's also a crypto token.
+         Mix show logistics with natural conversation.
+         Examples:
+         - Meta: "The engagement metrics from last week's 'random' encounter were fantastic."
+         - Mixed: "My sister's visiting next week - hope she doesn't mess up any scenes."
+         - Crypto-casual: "The pump groups are getting restless, but what can we do?"
+         Reference previous context when appropriate.`;
+      }
+    
+      try {
+        const completion = await openai.chat.completions.create({
+          model: "gpt-3.5-turbo",
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: 75,
+          temperature: 0.8,
+        });
+    
+        const content = completion.choices[0].message.content
+          .split('\n')[0]
+          .replace(/^[^:]*:\s*/, '')
+          .replace(/\s+[^:]*:.*$/, '')
+          .replace(/^["']|["']$/g, '')
+          .trim();
+    
+        updateRelationships(sprite1, sprite2, content);
+    
+        const dialogue = {
+          speaker: sprite1.id,
+          listener: sprite2.id,
+          content,
+          topic: currentTopic,
+          mood: sprite1.currentMood,
+          timestamp: Date.now()
+        };
+    
+        if (!gameState.conversationHistory) gameState.conversationHistory = [];
+        gameState.conversationHistory.push(dialogue);
+        if (gameState.conversationHistory.length > 50) {
+          gameState.conversationHistory = gameState.conversationHistory.slice(-50);
+        }
+    
+        return dialogue;
+      } catch (error) {
+        console.error('Dialogue generation error:', error);
+        return null;
       }
     }
   
