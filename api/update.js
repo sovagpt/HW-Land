@@ -315,6 +315,7 @@ export default async function handler(request) {
       if (distance < 80 && sprite.state === 'idle' && Math.random() < 0.3) {
         const dialogue = await generateDialogue(sprite, targetSprite);
         if (dialogue) {
+          console.log("Generated dialogue:", dialogue);
           if (!gameState.conversations) gameState.conversations = [];
           if (!sprite.conversations) sprite.conversations = [];
           if (!targetSprite.conversations) targetSprite.conversations = [];
