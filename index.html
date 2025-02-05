@@ -836,11 +836,15 @@ async function initGame() {
     const oldState = gameState;
     gameState = newState;
     
-    // Add this line to load previous thoughts when state first initializes
-    if (!oldState && gameState) {
-        loadPreviousThoughts();
+    // Check for new conversations
+    if (gameState.conversations && (!oldState || !oldState.conversations || 
+        gameState.conversations.length > oldState.conversations.length)) {
+        const newConversation = gameState.conversations[gameState.conversations.length - 1];
+        if (newConversation) {
+            showSpeechBubble(newConversation.speaker, newConversation.content);
+        }
     }
-    
+
     updateTrumanThoughts(newState);
     // Update sprites
     if (gameState.sprites) {
@@ -879,19 +883,6 @@ function showThought(spriteId, thought) {
 
     document.getElementById('spriteLayer').appendChild(thoughtBubble);
     setTimeout(() => thoughtBubble.remove(), 5000);
-}
-
-function showSpeechBubble(spriteId, text) {
-    const sprite = document.querySelector(`[data-id="${spriteId}"]`);
-    if (!sprite) return;
-
-    const bubble = document.createElement('div');
-    bubble.className = 'speech-bubble';
-    bubble.textContent = text;
-    sprite.appendChild(bubble);
-
-    // Remove the bubble after animation completes
-    setTimeout(() => bubble.remove(), 4000);
 }
 
         function isValidPosition(x, y) {
@@ -1001,6 +992,18 @@ function moveMap(direction) {
             container.scrollBy(MOVE_AMOUNT, 0);
             break;
     }
+}
+function showSpeechBubble(spriteId, text) {
+    const sprite = document.querySelector(`[data-id="${spriteId}"]`);
+    if (!sprite) return;
+
+    const bubble = document.createElement('div');
+    bubble.className = 'speech-bubble';
+    bubble.textContent = text;
+    sprite.appendChild(bubble);
+
+    // Remove the bubble after animation completes
+    setTimeout(() => bubble.remove(), 4000);
 }
     </script>
 </body>
