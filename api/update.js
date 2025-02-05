@@ -263,18 +263,39 @@ export default async function handler(request) {
             const recentConvo = gameState.conversations && gameState.conversations.length > 0 ? 
                 gameState.conversations[gameState.conversations.length - 1] : null;
             
+            // Get random pattern type for varied observations
+            const patternTypes = [
+                'daily routines',
+                'weather patterns',
+                'people behaviors',
+                'town oddities',
+                'background sounds',
+                'recent conversations'
+            ];
+            const randomPattern = patternTypes[Math.floor(Math.random() * patternTypes.length)];
+            
             let prompt;
             if (recentConvo && recentConvo.listener === 'truman') {
                 prompt = `You are Truman. ${recentConvo.speaker} just said to you: "${recentConvo.content}"
                     Generate a suspicious thought about this interaction (max 20 words).
-                    Example: "How did they know about my childhood? I never told anyone about that..."
+                    Focus on inconsistencies in their story or weird behavior.
+                    Examples: 
+                    - "That's the third time they've mentioned childhood memories I don't remember..."
+                    - "Why do they keep steering conversations away from the edge of town?"
                     Don't mention Seahaven, this is HelloWorldTown.`;
             } else {
-                prompt = `You are Truman living in HelloWorldTown. Generate a brief suspicious thought (max 20 words) about your daily life.
-                    Express subtle confusion about strange occurrences or the repeating patterns you notice.
-                    Example: "Why do I keep seeing the same faces every day at exactly 8:15?"`;
+                prompt = `You are Truman living in HelloWorldTown. Generate a brief suspicious thought about ${randomPattern} (max 20 words).
+                    Express confusion about strange occurrences you notice.
+                    Examples based on pattern type:
+                    - Daily routines: "Everyone arrives at the coffee shop at exactly 8:15, like clockwork..."
+                    - Weather: "The rain always stops precisely when I need to go somewhere."
+                    - People: "Why do the same strangers keep appearing in different jobs?"
+                    - Town: "That building appeared overnight, but everyone acts like it's always been there."
+                    - Sounds: "The birds... they sound like they're on a loop."
+                    - Conversations: "Why does everyone change the subject when I mention traveling?"
+                    Make it subtle and specific to HelloWorldTown.`;
             }
-
+    
             const completion = await openai.chat.completions.create({
                 model: "gpt-3.5-turbo",
                 messages: [{ role: "user", content: prompt }],
