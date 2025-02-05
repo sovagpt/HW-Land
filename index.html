@@ -760,64 +760,64 @@ async function loadPreviousThoughts() {
 }
 
 function showThoughtHistory(spriteData) {
-    const existingProfile = document.querySelector('.npc-profile');
-    if (existingProfile) {
-        existingProfile.remove();
-    }
+   const existingProfile = document.querySelector('.npc-profile');
+   if (existingProfile) {
+       existingProfile.remove();
+   }
 
-    const profile = document.createElement('div');
-    profile.className = 'npc-profile';
+   const profile = document.createElement('div');
+   profile.className = 'npc-profile';
 
-    const npcDescription = getNPCDescription(spriteData.id);
+   const npcDescription = getNPCDescription(spriteData.id);
 
-    // Calculate sprite animation frame
-    const frameX = 0; // First frame
-    const frameY = 0; // First row
-    const spritePosition = `${-frameX * 96}px ${-frameY * 96}px`; // 3x the original 32px
+   // Calculate sprite animation frame
+   const frameX = 0;  // First frame
+   const frameY = 0;  // First row
+   const spritePosition = `${-frameX * 64}px ${-frameY * 64}px`; // 2x the original 32px
 
-    profile.innerHTML = `
-        <div class="npc-header">
-            <span>${spriteData.id.toUpperCase()}</span>
-            <button class="npc-close" onclick="this.parentElement.parentElement.remove()">×</button>
-        </div>
-        <div class="npc-content">
-            <div class="npc-sprite-preview">
-                <div class="sprite" style="
-                    width: 96px;
-                    height: 96px;
-                    background-image: url('/sprites/${spriteData.type}.png');
-                    background-size: 2784px 768px;
-                    background-position: ${spritePosition};
-                    image-rendering: pixelated;
-                "></div>
-            </div>
-            <div class="npc-description">
-                ${npcDescription}
-            </div>
-        </div>
-        <div class="npc-conversations">
-            ${gameState.conversations
-                .filter(c => c.speaker === spriteData.id || c.listener === spriteData.id)
-                .slice(-10)
-                .reverse()
-                .map(conv => `
-                    <div class="conversation-entry">
-                        <div class="timestamp">
-                            ${new Date(conv.timestamp).toLocaleString()}
-                        </div>
-                        <div class="speaker-name">
-                            ${conv.speaker.toUpperCase()}
-                        </div>
-                        <div class="conversation-text">
-                            "${conv.content}"
-                        </div>
-                    </div>
-                `).join('')}
-        </div>
-    `;
+   profile.innerHTML = `
+       <div class="npc-header">
+           <span>${spriteData.id.toUpperCase()}</span>
+           <button class="npc-close" onclick="this.parentElement.parentElement.remove()">×</button>
+       </div>
+       <div class="npc-content">
+           <div class="npc-sprite-preview">
+               <div class="sprite" style="
+                   width: 64px;
+                   height: 64px;
+                   background-image: url('/sprites/${spriteData.type}.png');
+                   background-size: 1856px 512px;
+                   background-position: ${spritePosition};
+                   image-rendering: pixelated;
+               "></div>
+           </div>
+           <div class="npc-description">
+               ${npcDescription}
+           </div>
+       </div>
+       <div class="npc-conversations">
+           ${gameState.conversations
+               .filter(c => c.speaker === spriteData.id || c.listener === spriteData.id)
+               .slice(-10)
+               .reverse()
+               .map(conv => `
+                   <div class="conversation-entry">
+                       <div class="timestamp">
+                           ${new Date(conv.timestamp).toLocaleString()}
+                       </div>
+                       <div class="speaker-name">
+                           ${conv.speaker.toUpperCase()}
+                       </div>
+                       <div class="conversation-text">
+                           ${conv.content.replace(/^["']|["']$/g, '')}
+                       </div>
+                   </div>
+               `).join('')}
+       </div>
+   `;
 
-    document.body.appendChild(profile);
-    profile.style.display = 'block';
+   document.body.appendChild(profile);
+   profile.style.display = 'block';
 }
 
 function getNPCDescription(id) {
