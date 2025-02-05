@@ -243,60 +243,85 @@ export default async function handler(request) {
       gameState.sprites = [];
   }
 
-    gameState.sprites = await Promise.all(gameState.sprites.map(async sprite => {
-      if (sprite.id === 'truman') {
-        const targetSprite = sprite.currentTarget || {
-          x: sprite.x + (Math.random() - 0.5) * 100,
-          y: sprite.y + (Math.random() - 0.5) * 100
-        };
-        
-        const { momentumX, momentumY } = calculateMovement(sprite, targetSprite, gameState);
-        sprite.momentumX = momentumX;
-        sprite.momentumY = momentumY;
-      } else {
-        const truman = gameState.sprites.find(s => s.id === 'truman');
-        const otherNPCs = gameState.sprites.filter(s => s.id !== sprite.id && s.id !== 'truman');
-        const targetSprite = Math.random() < 0.3 ? truman : otherNPCs[Math.floor(Math.random() * otherNPCs.length)];
-        
-        const { momentumX, momentumY } = calculateMovement(sprite, targetSprite, gameState);
-        sprite.momentumX = momentumX;
-        sprite.momentumY = momentumY;
+  gameState.sprites = await Promise.all(gameState.sprites.map(async sprite => {
+    if (sprite.id === 'truman') {
+      const targetSprite = sprite.currentTarget || {
+        x: sprite.x + (Math.random() - 0.5) * 100,
+        y: sprite.y + (Math.random() - 0.5) * 100
+      };
+      
+      const { momentumX, momentumY } = calculateMovement(sprite, targetSprite, gameState);
+      sprite.momentumX = momentumX;
+      sprite.momentumY = momentumY;
 
-        const distance = Math.sqrt(
-          Math.pow(targetSprite.x - sprite.x, 2) + 
-          Math.pow(targetSprite.y - sprite.y, 2)
-        );
-        
-        if (distance < 80 && sprite.state === 'idle' && Math.random() < 0.3) {
-          const dialogue = await generateDialogue(sprite, targetSprite);
-          if (dialogue) {
-            if (!gameState.conversations) gameState.conversations = [];
-            if (!sprite.conversations) sprite.conversations = [];
-            if (!targetSprite.conversations) targetSprite.conversations = [];
-            
-            gameState.conversations.push(dialogue);
-            sprite.conversations.push(dialogue);
-            targetSprite.conversations.push(dialogue);
-            
-            if (gameState.conversations.length > 50) {
-              gameState.conversations = gameState.conversations.slice(-50);
-            }
-            if (sprite.conversations.length > 10) {
-              sprite.conversations = sprite.conversations.slice(-10);
-            }
-            if (targetSprite.conversations.length > 10) {
-              targetSprite.conversations = targetSprite.conversations.slice(-10);
-            }
-            
-            const response = await generateDialogue(targetSprite, sprite);
-            if (response) {
-              gameState.conversations.push(response);
-              sprite.conversations.push(response);
-              targetSprite.conversations.push(response);
-            }
+      // Add Truman thought generation
+      if (Math.random() < 0.1) { // 10% chance each update
+          try {
+              const completion = await openai.chat.completions.create({
+                  model: "gpt-3.5-turbo",
+                  messages: [{ 
+                      role: "user", 
+                      content: "You are Truman. Generate a brief thought (max 20 words) about your daily life in this seemingly perfect town. Occasionally express subtle confusion about strange occurrences."
+                  }],
+                  max_tokens: 50,
+                  temperature: 0.7,
+              });
+              
+              const thought = completion.choices[0].message.content;
+              if (!gameState.thoughts) gameState.thoughts = [];
+              gameState.thoughts.push({
+                  spriteId: 'truman',
+                  thought: thought,
+                  timestamp: Date.now()
+              });
+          } catch (error) {
+              console.error('Error generating thought:', error);
+          }
+      }
+    } else {
+      const truman = gameState.sprites.find(s => s.id === 'truman');
+      const otherNPCs = gameState.sprites.filter(s => s.id !== sprite.id && s.id !== 'truman');
+      const targetSprite = Math.random() < 0.3 ? truman : otherNPCs[Math.floor(Math.random() * otherNPCs.length)];
+      
+      const { momentumX, momentumY } = calculateMovement(sprite, targetSprite, gameState);
+      sprite.momentumX = momentumX;
+      sprite.momentumY = momentumY;
+
+      const distance = Math.sqrt(
+        Math.pow(targetSprite.x - sprite.x, 2) + 
+        Math.pow(targetSprite.y - sprite.y, 2)
+      );
+      
+      if (distance < 80 && sprite.state === 'idle' && Math.random() < 0.3) {
+        const dialogue = await generateDialogue(sprite, targetSprite);
+        if (dialogue) {
+          if (!gameState.conversations) gameState.conversations = [];
+          if (!sprite.conversations) sprite.conversations = [];
+          if (!targetSprite.conversations) targetSprite.conversations = [];
+          
+          gameState.conversations.push(dialogue);
+          sprite.conversations.push(dialogue);
+          targetSprite.conversations.push(dialogue);
+          
+          if (gameState.conversations.length > 50) {
+            gameState.conversations = gameState.conversations.slice(-50);
+          }
+          if (sprite.conversations.length > 10) {
+            sprite.conversations = sprite.conversations.slice(-10);
+          }
+          if (targetSprite.conversations.length > 10) {
+            targetSprite.conversations = targetSprite.conversations.slice(-10);
+          }
+          
+          const response = await generateDialogue(targetSprite, sprite);
+          if (response) {
+            gameState.conversations.push(response);
+            sprite.conversations.push(response);
+            targetSprite.conversations.push(response);
           }
         }
       }
+    }
 
       let newX = Math.max(50, Math.min(910, sprite.x + sprite.momentumX));
       let newY = Math.max(50, Math.min(910, sprite.y + sprite.momentumY));
