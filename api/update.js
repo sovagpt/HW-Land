@@ -262,7 +262,7 @@ export default async function handler(request) {
               },
               {
                   id: 'william',
-                  x: 250,
+                  x: 200,
                   y: 350,
                   type: 'WilliamSprite',
                   thoughts: [],
