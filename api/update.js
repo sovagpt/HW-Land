@@ -104,27 +104,41 @@ async function generateDialogue(sprite1, sprite2) {
      Keep responses brief and natural, but ensure complete sentences.`;
   } else {
     const conversationTypes = [
-        'discussing show logistics',
-        'sharing concerns about Truman',
-        'planning next scene',
-        'crypto meta discussion',
-        'worrying about Truman',
-        'discussing simulation maintenance'
+        // Meta topics (30%)
+        'show logistics',
+        'token performance',
+        'simulation maintenance',
+        // Mixed topics (40%)
+        'personal chat with show context',
+        'town planning with production elements',
+        'daily life with meta references',
+        'local events with hidden meanings',
+        // Regular topics (30%)
+        'break time chat',
+        'genuine concerns',
+        'actual local news',
+        'real personal matters'
     ];
     const convoType = conversationTypes[Math.floor(Math.random() * conversationTypes.length)];
 
     prompt = `You are ${sprite1.id} having a private conversation with ${sprite2.id}.
-     You're both actors in a reality show, and Truman is also unknowingly a crypto token on Pump.fun.
+     You're both actors in a reality show, and sometimes discuss that Truman is also a crypto token.
      Current topic: ${convoType}
-     Examples based on topic:
-     - Show logistics: "Camera 3 needs adjusting before the next scene."
-     - Concerns: "He's getting more suspicious every day, we need to be careful."
-     - Planning: "Let's stage the art fair scene after he leaves work."
-     - Crypto meta: "Poor thing has no idea he's a meme token on Pump.fun..."
-     - Worrying: "Have you seen his token price lately? The holders are getting anxious."
-     - Simulation: "The NPCs in sector 7 need their routines updated."
-     Make it sound natural, mix show logistics with crypto-meta references. Keep it brief but complete.`;
-  }
+     Keep it natural and varied:
+     - Sometimes mention the show, cameras, or token directly
+     - Other times just have normal coworker conversations
+     - Mix in genuine personal conversations
+     - Vary between meta talk and regular chat
+     
+     Examples of different styles:
+     - Meta: "The engagement metrics from last week's 'random' encounter were fantastic."
+     - Mixed: "My sister's visiting next week - hope she doesn't mess up any scenes."
+     - Regular: "This new coffee blend is amazing, you should try it."
+     - Show-related: "Getting tired of pretending to be a librarian, might ask for a role change."
+     - Crypto-casual: "The pump groups are getting restless, but what can we do?"
+     
+     Keep responses brief and natural.`;
+}
 
   try {
     const completion = await openai.chat.completions.create({
