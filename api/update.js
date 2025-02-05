@@ -83,20 +83,50 @@ async function generateDialogue(sprite1, sprite2) {
     ? `Recent conversation: ${recentThoughts.map(c => `${c.speaker}: ${c.content}`).join('. ')}` 
     : '';
 
+  // Define NPC personalities and roles
+  const npcRoles = {
+    sarah: "village elder, wise and philosophical",
+    michael: "shopkeeper, knows town gossip",
+    emma: "friendly neighbor, loves gardening",
+    james: "historian, interested in old stories",
+    olivia: "scientist, observant and analytical",
+    william: "gardener, nature enthusiast",
+    sophia: "storyteller, creative and imaginative"
+  };
+
   let prompt;
   if (isTrumanPresent) {
-    prompt = `You are ${sprite1.id}, having a casual conversation with ${sprite2.id}. ${context}
-     Have a friendly, normal conversation about daily life in town.
-     Examples: "Beautiful day isn't it?", "Have you tried the new coffee shop?"
+    prompt = `You are ${sprite1.id} (${npcRoles[sprite1.id]}), having a casual conversation with ${sprite2.id}. ${context}
+     Have a natural, friendly conversation that fits your role.
+     Topics: local events, hobbies, weather, town life, personal stories, or daily activities.
+     Examples: 
+     - "The flower festival is coming up next month. Will you be entering your roses again?"
+     - "That new café downtown makes the most amazing pastries."
+     - "Have you seen the northern lights lately? They've been spectacular."
      Respond as if speaking directly, max 20 words.`;
   } else {
-    prompt = `You are ${sprite1.id} having a secretive conversation with ${sprite2.id} about Truman.
-     You're both actors in a reality show Truman doesn't know about.
-     ${context}
-     Have a quiet, worried conversation about whether Truman suspects anything, his recent behavior, or how to keep the show going.
-     Make it sound natural, like real people talking, not robots.
-     Example: "Did you see how he looked at the sky yesterday? I'm worried he's starting to notice..."
-     Respond as if speaking directly to ${sprite2.id}, max 20 words.`;
+    // Random conversation type to vary dialogue
+    const conversationTypes = [
+      'discussing town maintenance',
+      'sharing personal concerns',
+      'planning community events',
+      'discussing the show logistics',
+      'talking about Truman',
+      'sharing town gossip'
+    ];
+    const convoType = conversationTypes[Math.floor(Math.random() * conversationTypes.length)];
+
+    prompt = `You are ${sprite1.id} (${npcRoles[sprite1.id]}) having a private conversation with ${sprite2.id} (${npcRoles[sprite2.id]}).
+     You're both actors in a reality show, but make it sound natural.
+     Current topic: ${convoType}
+     Examples based on topic:
+     - Town maintenance: "We need to fix that flickering streetlight before tonight's shoot."
+     - Personal: "It's hard maintaining this double life sometimes..."
+     - Events: "Should we schedule the art fair before or after next week's scene?"
+     - Logistics: "Camera 3 needs adjusting, but wait until the evening shift."
+     - About Truman: "He seemed distracted during our conversation earlier..."
+     - Gossip: "Did you hear about the new director coming next month?"
+     Respond naturally as your character speaking to ${sprite2.id}, max 20 words.`;
   }
 
   try {
@@ -104,7 +134,7 @@ async function generateDialogue(sprite1, sprite2) {
       model: "gpt-3.5-turbo",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 30,
-      temperature: 0.7,
+      temperature: 0.8, // Increased for more variety
     });
     return {
       speaker: sprite1.id,
