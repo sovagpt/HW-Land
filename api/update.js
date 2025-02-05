@@ -83,7 +83,6 @@ async function generateDialogue(sprite1, sprite2) {
     ? `Recent conversation: ${recentThoughts.map(c => `${c.speaker}: ${c.content}`).join('. ')}` 
     : '';
 
-  // Define NPC personalities and roles
   const npcRoles = {
     sarah: "village elder, wise and philosophical",
     michael: "shopkeeper, knows town gossip",
@@ -95,16 +94,15 @@ async function generateDialogue(sprite1, sprite2) {
   };
 
   let prompt;
-if (isTrumanPresent) {
+  if (isTrumanPresent) {
     prompt = `You are ${sprite1.id}, having a casual conversation with ${sprite2.id}. ${context}
      Have a friendly, normal conversation about daily life in town.
      Topics: local events, hobbies, weather, town life, personal stories, or daily activities.
      Examples: 
      - "The flower festival is coming up next month. Will you be entering your roses again?"
      - "Have you tried the new bakery in town?"
-     Respond as if speaking directly, max 20 words.`;
-} else {
-    // Random conversation type to vary dialogue
+     Keep responses brief and natural, but ensure complete sentences.`;
+  } else {
     const conversationTypes = [
         'discussing show logistics',
         'sharing concerns about Truman',
@@ -125,21 +123,21 @@ if (isTrumanPresent) {
      - Crypto meta: "Poor thing has no idea he's a meme token on Pump.fun..."
      - Worrying: "Have you seen his token price lately? The holders are getting anxious."
      - Simulation: "The NPCs in sector 7 need their routines updated."
-     Make it sound natural, mix show logistics with crypto-meta references. Max 20 words.`;
-}
+     Make it sound natural, mix show logistics with crypto-meta references. Keep it brief but complete.`;
+  }
 
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: 30,
-      temperature: 0.8, // Increased for more variety
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 75,
+        temperature: 0.8,
     });
     return {
-      speaker: sprite1.id,
-      listener: sprite2.id,
-      content: completion.choices[0].message.content,
-      timestamp: Date.now()
+        speaker: sprite1.id,
+        listener: sprite2.id,
+        content: completion.choices[0].message.content,
+        timestamp: Date.now()
     };
   } catch (error) {
     console.error('Dialogue generation error:', error);
