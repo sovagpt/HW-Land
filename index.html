@@ -496,6 +496,7 @@ document.body.insertAdjacentHTML('beforeend', socialButtons);
         let sprites = new Map();
         let eventSource = null;
         let mapImage = new Image();
+        const displayedThoughts = new Set();
 
         function log(message) {
     // Only log to console for debugging
@@ -628,7 +629,8 @@ document.body.insertAdjacentHTML('beforeend', socialButtons);
     if (newState.thoughts && newState.thoughts.length > 0) {
         const thoughtsContent = document.getElementById('thoughts-content');
         const lastThought = newState.thoughts[newState.thoughts.length - 1];
-        if (thoughtsContent && lastThought.spriteId === 'truman') {
+        if (thoughtsContent && lastThought.spriteId === 'truman' && !displayedThoughts.has(lastThought.thought)) {
+            displayedThoughts.add(lastThought.thought);
             thoughtsContent.innerHTML += `
                 <div class="thought-entry">
                     ${lastThought.thought}
