@@ -1165,17 +1165,6 @@ function updateVotingDisplay() {
         `;
     }
 }
-
-function updateVoteTimer() {
-    if (gameState.activeVoting && gameState.voteStartTime) {
-      const timeLeft = 24*60*60*1000 - (Date.now() - gameState.voteStartTime);
-      const hours = Math.floor(timeLeft / (60*60*1000));
-      const minutes = Math.floor((timeLeft % (60*60*1000)) / (60*1000));
-      document.getElementById('vote-timer').textContent = `${hours}h ${minutes}m remaining`;
-    }
-  }
-  
-  setInterval(updateVoteTimer, 1000);
 function showSpeechBubble(spriteId, text) {
     console.log("Show speech bubble called for:", spriteId, text);
     
