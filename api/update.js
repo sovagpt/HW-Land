@@ -377,33 +377,25 @@ export default async function handler(request) {
       if (distance < 80 && sprite.state === 'idle' && Math.random() < 0.3) {
         const dialogue = await generateDialogue(sprite, targetSprite);
         if (dialogue) {
-          console.log("Generated dialogue:", dialogue);
-          if (!gameState.conversations) gameState.conversations = [];
-          if (!sprite.conversations) sprite.conversations = [];
-          if (!targetSprite.conversations) targetSprite.conversations = [];
-          
-          gameState.conversations.push(dialogue);
-          sprite.conversations.push(dialogue);
-          targetSprite.conversations.push(dialogue);
-          
-          if (gameState.conversations.length > 50) {
-            gameState.conversations = gameState.conversations.slice(-50);
-          }
-          if (sprite.conversations.length > 10) {
-            sprite.conversations = sprite.conversations.slice(-10);
-          }
-          if (targetSprite.conversations.length > 10) {
-            targetSprite.conversations = targetSprite.conversations.slice(-10);
-          }
-          
-          const response = await generateDialogue(targetSprite, sprite);
-          if (response) {
-            gameState.conversations.push(response);
-            sprite.conversations.push(response);
-            targetSprite.conversations.push(response);
-          }
+            console.log("Generated dialogue:", dialogue);
+            if (!gameState.conversations) gameState.conversations = [];
+            if (!sprite.conversations) sprite.conversations = [];
+            if (!targetSprite.conversations) targetSprite.conversations = [];
+            
+            gameState.conversations.push(dialogue);
+            sprite.conversations.push(dialogue);
+            targetSprite.conversations.push(dialogue);
+            
+            if (gameState.conversations.length > 50) {
+                gameState.conversations = gameState.conversations.slice(-50);
+            }
+            if (sprite.conversations.length > 10) {
+                sprite.conversations = sprite.conversations.slice(-10);
+            }
+            if (targetSprite.conversations.length > 10) {
+                targetSprite.conversations = targetSprite.conversations.slice(-10);
+            }
         }
-      }
     }
 
       let newX = Math.max(50, Math.min(910, sprite.x + sprite.momentumX));
