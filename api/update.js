@@ -85,17 +85,18 @@ async function generateDialogue(sprite1, sprite2) {
 
   let prompt;
   if (isTrumanPresent) {
-    prompt = `You are an AI named ${sprite1.id} having a casual conversation with Truman. ${context}
-     If Truman seems suspicious of reality, naturally reassure him while hiding that you're AI.
-     If not, just have a friendly chat about daily life in the town.
+    prompt = `You are ${sprite1.id}, talking casually with Truman. ${context}
+     Have a friendly, normal conversation that doesn't raise suspicion.
      Respond as if speaking directly to him, max 20 words.`;
-  } else {
-    prompt = `You are an AI named ${sprite1.id} talking quietly with ${sprite2.id} about Truman.
-     You're both AIs who know the truth but must keep Truman unaware.
+} else {
+    prompt = `You are ${sprite1.id} having a secretive conversation with ${sprite2.id} about Truman.
+     You're both actors in a reality show Truman doesn't know about.
      ${context}
-     Have a whispered conversation about managing Truman's growing suspicions or maintaining the illusion.
+     Have a quiet, worried conversation about whether Truman suspects anything, his recent behavior, or how to keep the show going.
+     Make it sound natural, like real people talking, not robots.
+     Example: "Did you see how he looked at the sky yesterday? I'm worried he's starting to notice..."
      Respond as if speaking directly to ${sprite2.id}, max 20 words.`;
-  }
+}
 
   try {
     const completion = await openai.chat.completions.create({
