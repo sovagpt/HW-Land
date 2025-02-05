@@ -294,7 +294,7 @@
 
 .npc-sprite-preview {
     flex-shrink: 0;
-    width: 128px;  /* Increased from 96px */
+    width: 128px;
     height: 128px;
     background: #f5e6d3;
     border: 3px solid #f5e6d3;
@@ -304,6 +304,15 @@
     justify-content: center;
     align-items: center;
     padding: 10px;
+}
+
+.npc-sprite-preview .sprite {
+    width: 96px !important;   /* 3x original size */
+    height: 96px !important;  /* 3x original size */
+    background-size: 2784px 768px !important;  /* 3x the original 928x256 */
+    image-rendering: pixelated;
+    transform: scale(3);
+    transform-origin: center;
 }
 
 
@@ -761,6 +770,11 @@ function showThoughtHistory(spriteData) {
 
     const npcDescription = getNPCDescription(spriteData.id);
 
+    // Calculate sprite animation frame
+    const frameX = 0; // First frame
+    const frameY = 0; // First row
+    const spritePosition = `${-frameX * 96}px ${-frameY * 96}px`; // 3x the original 32px
+
     profile.innerHTML = `
         <div class="npc-header">
             <span>${spriteData.id.toUpperCase()}</span>
@@ -769,9 +783,11 @@ function showThoughtHistory(spriteData) {
         <div class="npc-content">
             <div class="npc-sprite-preview">
                 <div class="sprite" style="
+                    width: 96px;
+                    height: 96px;
                     background-image: url('/sprites/${spriteData.type}.png');
-                    background-size: 2784px 768px; /* 3x original size */
-                    background-position: 0 0;
+                    background-size: 2784px 768px;
+                    background-position: ${spritePosition};
                     image-rendering: pixelated;
                 "></div>
             </div>
