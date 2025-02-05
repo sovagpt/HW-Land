@@ -79,9 +79,9 @@ function calculateMovement(sprite, targetSprite, gameState) {
   if (!sprite.stuckTimer) sprite.stuckTimer = 0;
  
   const movement = Math.abs(sprite.x - sprite.lastPosition.x) + Math.abs(sprite.y - sprite.lastPosition.y);
-  if (movement < 1) {
+  if (movement < 1.5) {
     sprite.stuckTimer++;
-    if (sprite.stuckTimer > 10) { // 20 seconds
+    if (sprite.stuckTimer > 5) { // 20 seconds
       const truman = gameState.sprites.find(s => s.id === 'truman');
       sprite.momentumX = 0;
       sprite.momentumY = 0;
@@ -107,7 +107,7 @@ function calculateMovement(sprite, targetSprite, gameState) {
   sprite.stateTimer--;
   
   if (sprite.stateTimer <= 0) {
-    sprite.state = Math.random() < 0.4 ? 'moving' : 'idle';
+    sprite.state = Math.random() < 0.6 ? 'moving' : 'idle';
     sprite.stateTimer = sprite.state === 'idle' ? 200 : 150;
     
     if (sprite.state === 'moving' && Math.random() < 0.3) {
@@ -420,6 +420,7 @@ export default async function handler(request) {
       const { momentumX, momentumY } = calculateMovement(sprite, targetSprite, gameState);
       sprite.momentumX = momentumX;
       sprite.momentumY = momentumY;
+      console.log(`${sprite.id} position:`, sprite.x, sprite.y, 'state:', sprite.state);
 
       // Add Truman thought generation
       if (Math.random() < 0.02) { 
@@ -498,7 +499,8 @@ export default async function handler(request) {
         Math.pow(targetSprite.y - sprite.y, 2)
       );
       
-      if (distance < 80 && sprite.state === 'idle' && Math.random() < 0.5) {
+      if (distance < 80 && sprite.state === 'idle' && Math.random() < 0.3) {
+        console.log(`${sprite.id} checking conversation with ${targetSprite.id}, distance:`, distance);
         const dialogue = await generateDialogue(sprite, targetSprite);
         if (dialogue) {
           console.log("Generated dialogue:", dialogue);
