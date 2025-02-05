@@ -751,7 +751,7 @@ async function loadPreviousThoughts() {
             thoughtsContent.innerHTML += `
                 <div class="thought-entry">
                     <div class="timestamp">${timestamp}</div>
-                    ${lastThought.thought}
+                    ${lastThought.thought.replace(/^["']|["']$/g, '')}
                 </div>
             `;
             thoughtsContent.scrollTop = thoughtsContent.scrollHeight;
@@ -1106,48 +1106,47 @@ function showSpeechBubble(spriteId, text) {
         return;
     }
 
-    // Remove any existing speech bubble for this sprite
-    const existingBubble = sprite.querySelector('.speech-bubble');
-    console.log("Existing bubble found:", Boolean(existingBubble));
-    if (existingBubble) {
-        existingBubble.remove();
-    }
+    // Remove any existing speech bubbles from anywhere
+    document.querySelectorAll('.speech-bubble').forEach(b => b.remove());
 
     // Create new bubble
     const bubble = document.createElement('div');
     bubble.className = 'speech-bubble';
-    bubble.textContent = text;
+    bubble.textContent = text.replace(/^["']|["']$/g, ''); // Remove speech marks
     bubble.style.animation = 'fadeInOut 4s forwards';
 
-    // Add to sprite layer instead of sprite
+    // Add to sprite layer
     const spriteLayer = document.getElementById('spriteLayer');
     console.log("Sprite layer found:", Boolean(spriteLayer));
-    if (!spriteLayer) {
-        console.log("Error: Sprite layer not found");
-        return;
-    }
     spriteLayer.appendChild(bubble);
 
     // Position the bubble above the sprite
     function updateBubblePosition() {
-        const spriteRect = sprite.getBoundingClientRect();
-        const containerRect = spriteLayer.getBoundingClientRect();
-        console.log("Sprite position:", sprite.style.left, sprite.style.top);
+        const gameContainer = document.getElementById('gameContainer');
+        const scrollLeft = gameContainer.scrollLeft;
+        const scrollTop = gameContainer.scrollTop;
         
         const x = parseInt(sprite.style.left) + 16; // Center of sprite
-        const y = parseInt(sprite.style.top); // Top of sprite
+        const y = parseInt(sprite.style.top) - 40; // Higher above sprite
         
-        console.log("Calculated bubble position:", x, y);
         bubble.style.left = `${x}px`;
         bubble.style.top = `${y}px`;
+        console.log("Positioned bubble at:", x, y);
     }
 
-    // Update position immediately and during scroll
+    // Initial position
     updateBubblePosition();
-    document.getElementById('gameContainer').addEventListener('scroll', updateBubblePosition);
 
-    // Remove after animation
+    // Update on scroll
+    const gameContainer = document.getElementById('gameContainer');
+    const scrollHandler = () => {
+        requestAnimationFrame(updateBubblePosition);
+    };
+    gameContainer.addEventListener('scroll', scrollHandler);
+
+    // Remove bubble and scroll listener after animation
     setTimeout(() => {
+        gameContainer.removeEventListener('scroll', scrollHandler);
         bubble.remove();
         console.log("Bubble removed");
     }, 4000);
