@@ -81,10 +81,13 @@ function calculateMovement(sprite, targetSprite, gameState) {
   const movement = Math.abs(sprite.x - sprite.lastPosition.x) + Math.abs(sprite.y - sprite.lastPosition.y);
   if (movement < 1) {
     sprite.stuckTimer++;
-    if (sprite.stuckTimer > 10) {
+    if (sprite.stuckTimer > 10) { // 20 seconds
+      const truman = gameState.sprites.find(s => s.id === 'truman');
+      sprite.momentumX = 0;
+      sprite.momentumY = 0;
       sprite.currentTarget = {
-        x: Math.random() * 900 + 50,
-        y: Math.random() * 900 + 50
+        x: truman.x,
+        y: truman.y
       };
       sprite.stuckTimer = 0;
     }
