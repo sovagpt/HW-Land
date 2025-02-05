@@ -205,20 +205,34 @@
     background: white;
     border: 2px solid black;
     border-radius: 15px;
-    padding: 8px;
-    max-width: 150px;
-    font-size: 12px;
-    z-index: 1001;
-    top: -40px;
-    left: 20px;
+    padding: 10px;
+    min-width: 100px;
+    max-width: 200px;
+    font-size: 14px;
+    z-index: 2000;  /* Increased z-index */
     pointer-events: none;
-    animation: fadeOut 4s forwards;
+    opacity: 1;
+    transform: translate(-50%, -100%);  /* Center above sprite */
+    margin-top: -20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-@keyframes fadeOut {
-    0% { opacity: 1; }
-    75% { opacity: 1; }
-    100% { opacity: 0; }
+.speech-bubble:after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 10px 10px 0;
+    border-style: solid;
+    border-color: white transparent transparent;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translate(-50%, -90%); }
+    10% { opacity: 1; transform: translate(-50%, -100%); }
+    90% { opacity: 1; transform: translate(-50%, -100%); }
+    100% { opacity: 0; transform: translate(-50%, -90%); }
 }
         #thoughtBubble {
             position: absolute;
@@ -836,19 +850,17 @@ async function initGame() {
     const oldState = gameState;
     gameState = newState;
     
-    // Add debugging logs
-    console.log("Checking conversations:", {
-        hasConversations: Boolean(gameState.conversations),
-        conversationsLength: gameState?.conversations?.length,
-        oldConversationsLength: oldState?.conversations?.length
-    });
-    
-    if (gameState.conversations && (!oldState || !oldState.conversations || 
-        gameState.conversations.length > oldState.conversations.length)) {
-        const newConversation = gameState.conversations[gameState.conversations.length - 1];
-        console.log("New conversation detected:", newConversation); // Debug log
-        if (newConversation) {
-            showSpeechBubble(newConversation.speaker, newConversation.content);
+    // Check for new conversations
+    if (gameState.conversations && Array.isArray(gameState.conversations)) {
+        const oldConversationsLength = oldState?.conversations?.length || 0;
+        
+        if (gameState.conversations.length > oldConversationsLength) {
+            console.log("New conversation detected");
+            const newConversation = gameState.conversations[gameState.conversations.length - 1];
+            if (newConversation && newConversation.speaker && newConversation.content) {
+                console.log("Showing speech bubble for:", newConversation);
+                showSpeechBubble(newConversation.speaker, newConversation.content);
+            }
         }
     }
 
@@ -1001,20 +1013,50 @@ function moveMap(direction) {
     }
 }
 function showSpeechBubble(spriteId, text) {
-    console.log("Attempting to show speech bubble:", { spriteId, text });
+    console.log("Show speech bubble called for:", spriteId, text);
+    
+    // Find the sprite
     const sprite = document.querySelector(`[data-id="${spriteId}"]`);
-    console.log("Found sprite:", Boolean(sprite));
-    if (!sprite) return;
+    if (!sprite) {
+        console.log("Sprite not found:", spriteId);
+        return;
+    }
 
+    // Remove any existing speech bubble for this sprite
+    const existingBubble = sprite.querySelector('.speech-bubble');
+    if (existingBubble) {
+        existingBubble.remove();
+    }
+
+    // Create new bubble
     const bubble = document.createElement('div');
     bubble.className = 'speech-bubble';
     bubble.textContent = text;
-    sprite.appendChild(bubble);
-    console.log("Speech bubble created and appended");
+    bubble.style.animation = 'fadeInOut 4s forwards';
 
+    // Add to sprite layer instead of sprite
+    const spriteLayer = document.getElementById('spriteLayer');
+    spriteLayer.appendChild(bubble);
+
+    // Position the bubble above the sprite
+    function updateBubblePosition() {
+        const spriteRect = sprite.getBoundingClientRect();
+        const containerRect = spriteLayer.getBoundingClientRect();
+        
+        const x = parseInt(sprite.style.left) + 16; // Center of sprite
+        const y = parseInt(sprite.style.top); // Top of sprite
+        
+        bubble.style.left = `${x}px`;
+        bubble.style.top = `${y}px`;
+    }
+
+    // Update position immediately and during scroll
+    updateBubblePosition();
+    document.getElementById('gameContainer').addEventListener('scroll', updateBubblePosition);
+
+    // Remove after animation
     setTimeout(() => {
         bubble.remove();
-        console.log("Speech bubble removed");
     }, 4000);
 }
     </script>
