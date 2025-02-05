@@ -307,11 +307,11 @@
 }
 
 .npc-sprite-preview .sprite {
-    width: 96px !important;   /* 3x original size */
-    height: 96px !important;  /* 3x original size */
-    background-size: 2784px 768px !important;  /* 3x the original 928x256 */
+    width: 64px !important;   /* Reduced from 96px */
+    height: 64px !important;  /* Reduced from 96px */
+    background-size: 1856px 512px !important;  /* 2x the original 928x256 instead of 3x */
     image-rendering: pixelated;
-    transform: scale(3);
+    transform: scale(2);      /* Scale down from 3 to 2 */
     transform-origin: center;
 }
 
