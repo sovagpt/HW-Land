@@ -836,10 +836,17 @@ async function initGame() {
     const oldState = gameState;
     gameState = newState;
     
-    // Check for new conversations
+    // Add debugging logs
+    console.log("Checking conversations:", {
+        hasConversations: Boolean(gameState.conversations),
+        conversationsLength: gameState?.conversations?.length,
+        oldConversationsLength: oldState?.conversations?.length
+    });
+    
     if (gameState.conversations && (!oldState || !oldState.conversations || 
         gameState.conversations.length > oldState.conversations.length)) {
         const newConversation = gameState.conversations[gameState.conversations.length - 1];
+        console.log("New conversation detected:", newConversation); // Debug log
         if (newConversation) {
             showSpeechBubble(newConversation.speaker, newConversation.content);
         }
@@ -994,16 +1001,21 @@ function moveMap(direction) {
     }
 }
 function showSpeechBubble(spriteId, text) {
+    console.log("Attempting to show speech bubble:", { spriteId, text });
     const sprite = document.querySelector(`[data-id="${spriteId}"]`);
+    console.log("Found sprite:", Boolean(sprite));
     if (!sprite) return;
 
     const bubble = document.createElement('div');
     bubble.className = 'speech-bubble';
     bubble.textContent = text;
     sprite.appendChild(bubble);
+    console.log("Speech bubble created and appended");
 
-    // Remove the bubble after animation completes
-    setTimeout(() => bubble.remove(), 4000);
+    setTimeout(() => {
+        bubble.remove();
+        console.log("Speech bubble removed");
+    }, 4000);
 }
     </script>
 </body>
