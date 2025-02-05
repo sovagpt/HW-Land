@@ -394,8 +394,8 @@
         
         .conversation-entry {
     background: #fff9c4;
-    padding: 20px;
-    margin: 15px;
+    padding: 15px;
+    margin: 10px;
     border-radius: 8px;
     border: 2px solid #8b4513;
 }
@@ -406,6 +406,20 @@
     margin-bottom: 10px;
     border-bottom: 1px solid #ddd;
     padding-bottom: 5px;
+}
+.dialogue-direction {
+    color: #8b4513;
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+    font-size: 0.9em;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+}
+
+.dialogue-content {
+    padding: 5px 0;
+    line-height: 1.4;
 }
 .conversation-text {
     font-size: 0.9em;
@@ -805,11 +819,11 @@ function showThoughtHistory(spriteData) {
                        <div class="timestamp">
                            ${new Date(conv.timestamp).toLocaleString()}
                        </div>
-                       <div class="speaker-name">
-                           ${conv.speaker.toUpperCase()}
-                       </div>
                        <div class="conversation-text">
-                           ${conv.content.replace(/^["']|["']$/g, '')}
+                           <span class="dialogue-direction">${conv.speaker} speaking to ${conv.listener}:</span>
+                           <div class="dialogue-content">
+                               ${conv.content.replace(/^["']|["']$/g, '')}
+                           </div>
                        </div>
                    </div>
                `).join('')}
