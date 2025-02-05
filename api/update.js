@@ -74,6 +74,25 @@ function checkCollision(x, y) {
 }
 
 function calculateMovement(sprite, targetSprite, gameState) {
+  // Stuck detection
+  if (!sprite.lastPosition) sprite.lastPosition = { x: sprite.x, y: sprite.y };
+  if (!sprite.stuckTimer) sprite.stuckTimer = 0;
+ 
+  const movement = Math.abs(sprite.x - sprite.lastPosition.x) + Math.abs(sprite.y - sprite.lastPosition.y);
+  if (movement < 1) {
+    sprite.stuckTimer++;
+    if (sprite.stuckTimer > 20) {
+      sprite.currentTarget = {
+        x: Math.random() * 900 + 50,
+        y: Math.random() * 900 + 50
+      };
+      sprite.stuckTimer = 0;
+    }
+  } else {
+    sprite.stuckTimer = 0;
+  }
+  sprite.lastPosition = { x: sprite.x, y: sprite.y };
+ 
   const dx = targetSprite.x - sprite.x;
   const dy = targetSprite.y - sprite.y;
   const distance = Math.sqrt(dx * dx + dy * dy);
@@ -84,47 +103,44 @@ function calculateMovement(sprite, targetSprite, gameState) {
   
   sprite.stateTimer--;
   
-  // Increased randomization for movement
   if (sprite.stateTimer <= 0) {
-    sprite.state = Math.random() < 0.4 ? 'moving' : 'idle';  // Increased chance to move
-    sprite.stateTimer = sprite.state === 'idle' ? 200 : 150;  // Adjusted timers
+    sprite.state = Math.random() < 0.4 ? 'moving' : 'idle';
+    sprite.stateTimer = sprite.state === 'idle' ? 200 : 150;
     
-    // Random wandering
     if (sprite.state === 'moving' && Math.random() < 0.3) {
-      // Generate random point on map
-      const randomX = Math.random() * 900 + 50;  // Between 50 and 950
-      const randomY = Math.random() * 900 + 50;  // Between 50 and 950
+      const randomX = Math.random() * 900 + 50;
+      const randomY = Math.random() * 900 + 50;
       sprite.currentTarget = { x: randomX, y: randomY };
     }
-
+ 
     if (sprite.id === 'truman' && Math.random() < 0.4) {
       const npcs = gameState.sprites.filter(s => s.id !== 'truman');
       sprite.currentTarget = npcs[Math.floor(Math.random() * npcs.length)];
     }
   }
-
+ 
   if (sprite.state === 'idle') {
     return { momentumX: 0, momentumY: 0 };
   }
-
+ 
   if (sprite.currentTarget) {
     const targetDx = sprite.currentTarget.x - sprite.x;
     const targetDy = sprite.currentTarget.y - sprite.y;
     const targetDist = Math.sqrt(targetDx * targetDx + targetDy * targetDy);
     return {
-      momentumX: (sprite.momentumX || 0) * 0.95 + (targetDx / targetDist) * 3,  // Increased speed and smoothing
+      momentumX: (sprite.momentumX || 0) * 0.95 + (targetDx / targetDist) * 3,
       momentumY: (sprite.momentumY || 0) * 0.95 + (targetDy / targetDist) * 3
     };
   }
-
+ 
   const targetDistance = sprite.id === 'truman' ? 0 : 80;
-  const strength = (distance - targetDistance) * 0.15;  // Increased movement strength
+  const strength = (distance - targetDistance) * 0.15;
   
   return {
     momentumX: (sprite.momentumX || 0) * 0.95 + (dx / distance) * strength,
     momentumY: (sprite.momentumY || 0) * 0.95 + (dy / distance) * strength
   };
-}
+ }
 
 export default async function handler(request) {
   if (request.method === 'OPTIONS') {
@@ -479,7 +495,7 @@ export default async function handler(request) {
         Math.pow(targetSprite.y - sprite.y, 2)
       );
       
-      if (distance < 80 && sprite.state === 'idle' && Math.random() < 0.3) {
+      if (distance < 80 && sprite.state === 'idle' && Math.random() < 0.5) {
         const dialogue = await generateDialogue(sprite, targetSprite);
         if (dialogue) {
           console.log("Generated dialogue:", dialogue);
