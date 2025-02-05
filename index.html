@@ -507,6 +507,31 @@ document.body.insertAdjacentHTML('beforeend', socialButtons);
     // Don't show debugging messages in the UI anymore
 }
 
+async function loadPreviousThoughts() {
+    const thoughtsContent = document.getElementById('thoughts-content');
+    if (gameState && gameState.thoughts) {
+        // Sort thoughts by timestamp
+        const trumanThoughts = gameState.thoughts
+            .filter(t => t.spriteId === 'truman')
+            .sort((a, b) => a.timestamp - b.timestamp);
+
+        // Add each thought to the display and the Set
+        trumanThoughts.forEach(thought => {
+            if (!displayedThoughts.has(thought.thought)) {
+                displayedThoughts.add(thought.thought);
+                const timestamp = new Date(thought.timestamp).toLocaleString();
+                thoughtsContent.innerHTML += `
+                    <div class="thought-entry">
+                        <div class="timestamp">${timestamp}</div>
+                        ${thought.thought}
+                    </div>
+                `;
+            }
+        });
+        thoughtsContent.scrollTop = thoughtsContent.scrollHeight;
+    }
+}
+
         async function loadMap() {
             return new Promise((resolve, reject) => {
                 const canvas = document.getElementById('mapCanvas');
@@ -789,6 +814,11 @@ async function initGame() {
         function updateGameState(newState) {
     const oldState = gameState;
     gameState = newState;
+    
+    // Add this line to load previous thoughts when state first initializes
+    if (!oldState && gameState) {
+        loadPreviousThoughts();
+    }
     
     updateTrumanThoughts(newState);
     // Update sprites
