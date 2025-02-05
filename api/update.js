@@ -256,28 +256,33 @@ export default async function handler(request) {
 
       // Add Truman thought generation
       if (Math.random() < 0.1) { // 10% chance each update
-          try {
-              const completion = await openai.chat.completions.create({
-                  model: "gpt-3.5-turbo",
-                  messages: [{ 
-                      role: "user", 
-                      content: "You are Truman. Generate a brief thought (max 20 words) about your daily life in this seemingly perfect town. Occasionally express subtle confusion about strange occurrences."
-                  }],
-                  max_tokens: 50,
-                  temperature: 0.7,
-              });
-              
-              const thought = completion.choices[0].message.content;
-              if (!gameState.thoughts) gameState.thoughts = [];
-              gameState.thoughts.push({
-                  spriteId: 'truman',
-                  thought: thought,
-                  timestamp: Date.now()
-              });
-          } catch (error) {
-              console.error('Error generating thought:', error);
-          }
-      }
+        try {
+            const completion = await openai.chat.completions.create({
+                model: "gpt-3.5-turbo",
+                messages: [{ 
+                    role: "user", 
+                    content: "You are Truman. Generate a brief thought (max 20 words) about your daily life in this seemingly perfect town. Occasionally express subtle confusion about strange occurrences."
+                }],
+                max_tokens: 50,
+                temperature: 0.7,
+            });
+            
+            const thought = completion.choices[0].message.content;
+            if (!gameState.thoughts) gameState.thoughts = [];
+            
+            // Check if this thought isn't already the last thought
+            const lastThought = gameState.thoughts[gameState.thoughts.length - 1];
+            if (!lastThought || lastThought.thought !== thought) {
+                gameState.thoughts.push({
+                    spriteId: 'truman',
+                    thought: thought,
+                    timestamp: Date.now()
+                });
+            }
+        } catch (error) {
+            console.error('Error generating thought:', error);
+        }
+    }
     } else {
       const truman = gameState.sprites.find(s => s.id === 'truman');
       const otherNPCs = gameState.sprites.filter(s => s.id !== sprite.id && s.id !== 'truman');
