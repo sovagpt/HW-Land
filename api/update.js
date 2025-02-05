@@ -257,14 +257,27 @@ export default async function handler(request) {
       sprite.momentumY = momentumY;
 
       // Add Truman thought generation
-      if (Math.random() < 0.1) { // 10% chance each update
+      if (Math.random() < 0.02) { 
         try {
+            // Get recent conversation if any
+            const recentConvo = gameState.conversations && gameState.conversations.length > 0 ? 
+                gameState.conversations[gameState.conversations.length - 1] : null;
+            
+            let prompt;
+            if (recentConvo && recentConvo.listener === 'truman') {
+                prompt = `You are Truman. ${recentConvo.speaker} just said to you: "${recentConvo.content}"
+                    Generate a suspicious thought about this interaction (max 20 words).
+                    Example: "How did they know about my childhood? I never told anyone about that..."
+                    Don't mention Seahaven, this is HelloWorldTown.`;
+            } else {
+                prompt = `You are Truman living in HelloWorldTown. Generate a brief suspicious thought (max 20 words) about your daily life.
+                    Express subtle confusion about strange occurrences or the repeating patterns you notice.
+                    Example: "Why do I keep seeing the same faces every day at exactly 8:15?"`;
+            }
+
             const completion = await openai.chat.completions.create({
                 model: "gpt-3.5-turbo",
-                messages: [{ 
-                    role: "user", 
-                    content: "You are Truman. Generate a brief thought (max 20 words) about your daily life in this seemingly perfect town. Occasionally express subtle confusion about strange occurrences."
-                }],
+                messages: [{ role: "user", content: prompt }],
                 max_tokens: 50,
                 temperature: 0.7,
             });
