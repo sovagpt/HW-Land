@@ -395,21 +395,20 @@ export default async function handler(request) {
             if (targetSprite.conversations.length > 10) {
                 targetSprite.conversations = targetSprite.conversations.slice(-10);
             }
-            // Removed the automatic response generation
         }
     }
-
-      let newX = Math.max(50, Math.min(910, sprite.x + sprite.momentumX));
-      let newY = Math.max(50, Math.min(910, sprite.y + sprite.momentumY));
-      
-      if (checkCollision(newX, newY)) {
+    
+    let newX = Math.max(50, Math.min(910, sprite.x + sprite.momentumX));
+    let newY = Math.max(50, Math.min(910, sprite.y + sprite.momentumY));
+    
+    if (checkCollision(newX, newY)) {
         newX = sprite.x;
         newY = sprite.y;
         sprite.momentumX = -sprite.momentumX;
         sprite.momentumY = -sprite.momentumY;
-      }
-
-      return {
+    }
+    
+    return {
         ...sprite,
         x: newX,
         y: newY,
@@ -420,7 +419,7 @@ export default async function handler(request) {
         currentTarget: sprite.currentTarget,
         thoughts: sprite.thoughts,
         conversations: sprite.conversations
-      };
+    };
     }));
 
     gameState.time = Date.now();
