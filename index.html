@@ -1126,22 +1126,6 @@ function showThought(spriteId, thought) {
                 log('Voting error: ' + error.message);
             }
         }
-
-        function updateVotingPanel() {
-            const panel = document.getElementById('votePanel');
-            if (gameState.activeVoting) {
-                const options = document.getElementById('voteOptions');
-                options.innerHTML = Object.keys(gameState.votes).map(option => `
-                    <div>
-                        <button onclick="vote('${option}')">${option}</button>
-                        <span>${gameState.votes[option] || 0}</span>
-                    </div>
-                `).join('');
-                panel.style.display = 'block';
-            } else {
-                panel.style.display = 'none';
-            }
-        }
         let cameraPosition = { x: 0, y: 0 };
 const MOVE_AMOUNT = 50;
 
