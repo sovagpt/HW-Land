@@ -133,6 +133,22 @@
     align-self: center;
 }
 
+.vote-btn {
+    background: #8b4513;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    margin: 5px 0;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px;
+}
+
+.vote-btn:hover {
+    background: #654321;
+}
+
 .nav-btn:hover {
     background: rgba(0, 0, 0, 0.8);
 }
@@ -974,6 +990,7 @@ async function initGame() {
         function updateGameState(newState) {
     const oldState = gameState;
     gameState = newState;
+    updateVotingDisplay();
     
     // Check for new conversations with more detailed logging
     if (gameState.conversations && Array.isArray(gameState.conversations)) {
@@ -1144,6 +1161,24 @@ function moveMap(direction) {
         case 'right':
             container.scrollBy(MOVE_AMOUNT, 0);
             break;
+    }
+}
+
+function updateVotingDisplay() {
+    const votingContent = document.getElementById('voting-content');
+    if (gameState && gameState.activeVoting) {
+        const timeLeft = Math.max(0, gameState.voteEndTime - Date.now());
+        const hoursLeft = Math.floor(timeLeft / (60 * 60 * 1000));
+        
+        votingContent.innerHTML = `
+            <div style="margin-bottom: 10px">Time left: ${hoursLeft}h</div>
+            ${Object.entries(gameState.votes).map(([option, count]) => `
+                <div style="margin: 5px 0">
+                    <button onclick="vote('${option}')" class="vote-btn">${option}</button>
+                    <span>${count || 0} votes</span>
+                </div>
+            `).join('')}
+        `;
     }
 }
 
