@@ -395,6 +395,7 @@ export default async function handler(request) {
             if (targetSprite.conversations.length > 10) {
                 targetSprite.conversations = targetSprite.conversations.slice(-10);
             }
+            // Removed the automatic response generation
         }
     }
 
