@@ -276,35 +276,36 @@
     transform: translate(-50%, -50%);
     background: #fff;
     border-radius: 8px;
-    width: 500px; /* Increased from 300px */
+    width: 600px; /* Even wider */
     max-height: 80vh;
     overflow-y: auto;
     z-index: 2000;
-    display: none;
     font-family: 'Press Start 2P', monospace;
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    display: flex;
-    flex-direction: column;
 }
 
 .npc-content {
     display: flex;
-    gap: 20px;
-    padding: 15px;
+    gap: 30px;
+    padding: 20px;
+    background: #8b4513;
+    color: white;
 }
 
 .npc-sprite-preview {
     flex-shrink: 0;
-    width: 96px;  /* 3x sprite size */
-    height: 96px;
-    background: #f0f0f0;
-    border: 2px solid #8b4513;
-    border-radius: 4px;
+    width: 128px;  /* Increased from 96px */
+    height: 128px;
+    background: #f5e6d3;
+    border: 3px solid #f5e6d3;
+    border-radius: 8px;
     image-rendering: pixelated;
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 10px;
 }
+
 
         .terminal-section {
     background: #f5e6d3;
@@ -384,19 +385,31 @@
         
         .conversation-entry {
     background: #fff9c4;
-    padding: 15px;
-    margin: 10px 0;
-    border-radius: 4px;
-    border: 1px solid #ddd;
-    display: flex;
-    gap: 10px;
+    padding: 20px;
+    margin: 15px;
+    border-radius: 8px;
+    border: 2px solid #8b4513;
 }
         
-        .timestamp {
-            font-size: 0.8em;
-            color: #666;
-            margin-bottom: 5px;
-        }
+.timestamp {
+    font-size: 0.7em;
+    color: #666;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+}
+.conversation-text {
+    font-size: 0.9em;
+    line-height: 1.6;
+    margin-top: 10px;
+}
+
+.speaker-name {
+    color: #8b4513;
+    font-weight: bold;
+    font-size: 1em;
+    margin-bottom: 5px;
+}
         .conversation-speaker {
     font-weight: bold;
     min-width: 100px;
@@ -756,10 +769,9 @@ function showThoughtHistory(spriteData) {
         <div class="npc-content">
             <div class="npc-sprite-preview">
                 <div class="sprite" style="
-                    width: 32px;
-                    height: 32px;
                     background-image: url('/sprites/${spriteData.type}.png');
-                    background-size: 928px 256px;
+                    background-size: 2784px 768px; /* 3x original size */
+                    background-position: 0 0;
                     image-rendering: pixelated;
                 "></div>
             </div>
@@ -771,16 +783,17 @@ function showThoughtHistory(spriteData) {
             ${gameState.conversations
                 .filter(c => c.speaker === spriteData.id || c.listener === spriteData.id)
                 .slice(-10)
+                .reverse()
                 .map(conv => `
                     <div class="conversation-entry">
                         <div class="timestamp">
                             ${new Date(conv.timestamp).toLocaleString()}
                         </div>
-                        <div class="conversation-speaker">
-                            ${conv.speaker}:
+                        <div class="speaker-name">
+                            ${conv.speaker.toUpperCase()}
                         </div>
-                        <div class="conversation-message">
-                            ${conv.content}
+                        <div class="conversation-text">
+                            "${conv.content}"
                         </div>
                     </div>
                 `).join('')}
