@@ -1,6 +1,3 @@
-Here's the updated stream.js with voting state:
-
-```javascript
 // api/stream.js
 import { Redis } from '@upstash/redis'
 
