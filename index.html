@@ -802,10 +802,13 @@ function showThoughtHistory(spriteData) {
                 ? `<span class="dialogue-direction">To ${conv.listener}:</span>`
                 : `<span class="dialogue-direction">From ${conv.speaker}:</span>`;
             
-            // Clean up the content by removing speaker prefix and quotes
+            // Clean up the content by removing speaker prefixes and any quote marks
             const cleanContent = conv.content
-                .replace(/^["']|["']$/g, '')  // Remove surrounding quotes
-                .replace(/^[^:]*:\s*/, '');   // Remove "Speaker:" prefix
+                .replace(/^[^:]*:\s*/, '')    // Remove "Speaker:" prefix
+                .replace(/^"/, '')            // Remove opening quote
+                .replace(/" [^:]+:/, '')      // Remove any mid-message speaker labels
+                .replace(/"/g, '')            // Remove all remaining quotes
+                .trim();                      // Clean up any extra whitespace
 
             return `
                 <div class="conversation-entry ${isOutgoing ? 'outgoing' : 'incoming'}">
