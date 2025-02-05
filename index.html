@@ -199,6 +199,27 @@
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-5px); }
         }
+
+        .speech-bubble {
+    position: absolute;
+    background: white;
+    border: 2px solid black;
+    border-radius: 15px;
+    padding: 8px;
+    max-width: 150px;
+    font-size: 12px;
+    z-index: 1001;
+    top: -40px;
+    left: 20px;
+    pointer-events: none;
+    animation: fadeOut 4s forwards;
+}
+
+@keyframes fadeOut {
+    0% { opacity: 1; }
+    75% { opacity: 1; }
+    100% { opacity: 0; }
+}
         #thoughtBubble {
             position: absolute;
             background: white;
@@ -858,6 +879,19 @@ function showThought(spriteId, thought) {
 
     document.getElementById('spriteLayer').appendChild(thoughtBubble);
     setTimeout(() => thoughtBubble.remove(), 5000);
+}
+
+function showSpeechBubble(spriteId, text) {
+    const sprite = document.querySelector(`[data-id="${spriteId}"]`);
+    if (!sprite) return;
+
+    const bubble = document.createElement('div');
+    bubble.className = 'speech-bubble';
+    bubble.textContent = text;
+    sprite.appendChild(bubble);
+
+    // Remove the bubble after animation completes
+    setTimeout(() => bubble.remove(), 4000);
 }
 
         function isValidPosition(x, y) {
