@@ -924,15 +924,24 @@ async function initGame() {
     const oldState = gameState;
     gameState = newState;
     
-    // Check for new conversations
+    // Check for new conversations with more detailed logging
     if (gameState.conversations && Array.isArray(gameState.conversations)) {
         const oldConversationsLength = oldState?.conversations?.length || 0;
+        const newConversationsLength = gameState.conversations.length;
         
-        if (gameState.conversations.length > oldConversationsLength) {
+        console.log("Conversations check:", {
+            oldLength: oldConversationsLength,
+            newLength: newConversationsLength,
+            hasNew: newConversationsLength > oldConversationsLength
+        });
+        
+        if (newConversationsLength > oldConversationsLength) {
             console.log("New conversation detected");
             const newConversation = gameState.conversations[gameState.conversations.length - 1];
+            console.log("New conversation details:", newConversation);
+            
             if (newConversation && newConversation.speaker && newConversation.content) {
-                console.log("Showing speech bubble for:", newConversation);
+                console.log("Attempting to show speech bubble");
                 showSpeechBubble(newConversation.speaker, newConversation.content);
             }
         }
@@ -1091,6 +1100,7 @@ function showSpeechBubble(spriteId, text) {
     
     // Find the sprite
     const sprite = document.querySelector(`[data-id="${spriteId}"]`);
+    console.log("Sprite found:", Boolean(sprite), sprite);
     if (!sprite) {
         console.log("Sprite not found:", spriteId);
         return;
@@ -1098,6 +1108,7 @@ function showSpeechBubble(spriteId, text) {
 
     // Remove any existing speech bubble for this sprite
     const existingBubble = sprite.querySelector('.speech-bubble');
+    console.log("Existing bubble found:", Boolean(existingBubble));
     if (existingBubble) {
         existingBubble.remove();
     }
@@ -1110,16 +1121,23 @@ function showSpeechBubble(spriteId, text) {
 
     // Add to sprite layer instead of sprite
     const spriteLayer = document.getElementById('spriteLayer');
+    console.log("Sprite layer found:", Boolean(spriteLayer));
+    if (!spriteLayer) {
+        console.log("Error: Sprite layer not found");
+        return;
+    }
     spriteLayer.appendChild(bubble);
 
     // Position the bubble above the sprite
     function updateBubblePosition() {
         const spriteRect = sprite.getBoundingClientRect();
         const containerRect = spriteLayer.getBoundingClientRect();
+        console.log("Sprite position:", sprite.style.left, sprite.style.top);
         
         const x = parseInt(sprite.style.left) + 16; // Center of sprite
         const y = parseInt(sprite.style.top); // Top of sprite
         
+        console.log("Calculated bubble position:", x, y);
         bubble.style.left = `${x}px`;
         bubble.style.top = `${y}px`;
     }
@@ -1131,6 +1149,7 @@ function showSpeechBubble(spriteId, text) {
     // Remove after animation
     setTimeout(() => {
         bubble.remove();
+        console.log("Bubble removed");
     }, 4000);
 }
     </script>
