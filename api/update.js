@@ -44,10 +44,19 @@ function calculateMovement(sprite, targetSprite, gameState) {
   
   sprite.stateTimer--;
   
+  // Increased randomization for movement
   if (sprite.stateTimer <= 0) {
-    sprite.state = Math.random() < 0.2 ? 'moving' : 'idle';
-    sprite.stateTimer = sprite.state === 'idle' ? 300 : 100;
+    sprite.state = Math.random() < 0.4 ? 'moving' : 'idle';  // Increased chance to move
+    sprite.stateTimer = sprite.state === 'idle' ? 200 : 150;  // Adjusted timers
     
+    // Random wandering
+    if (sprite.state === 'moving' && Math.random() < 0.3) {
+      // Generate random point on map
+      const randomX = Math.random() * 900 + 50;  // Between 50 and 950
+      const randomY = Math.random() * 900 + 50;  // Between 50 and 950
+      sprite.currentTarget = { x: randomX, y: randomY };
+    }
+
     if (sprite.id === 'truman' && Math.random() < 0.4) {
       const npcs = gameState.sprites.filter(s => s.id !== 'truman');
       sprite.currentTarget = npcs[Math.floor(Math.random() * npcs.length)];
@@ -58,22 +67,22 @@ function calculateMovement(sprite, targetSprite, gameState) {
     return { momentumX: 0, momentumY: 0 };
   }
 
-  if (sprite.id === 'truman' && sprite.currentTarget) {
+  if (sprite.currentTarget) {
     const targetDx = sprite.currentTarget.x - sprite.x;
     const targetDy = sprite.currentTarget.y - sprite.y;
     const targetDist = Math.sqrt(targetDx * targetDx + targetDy * targetDy);
     return {
-      momentumX: (sprite.momentumX || 0) * 0.9 + (targetDx / targetDist) * 2,
-      momentumY: (sprite.momentumY || 0) * 0.9 + (targetDy / targetDist) * 2
+      momentumX: (sprite.momentumX || 0) * 0.95 + (targetDx / targetDist) * 3,  // Increased speed and smoothing
+      momentumY: (sprite.momentumY || 0) * 0.95 + (targetDy / targetDist) * 3
     };
   }
 
   const targetDistance = sprite.id === 'truman' ? 0 : 80;
-  const strength = (distance - targetDistance) * 0.1;
+  const strength = (distance - targetDistance) * 0.15;  // Increased movement strength
   
   return {
-    momentumX: (sprite.momentumX || 0) * 0.9 + (dx / distance) * strength,
-    momentumY: (sprite.momentumY || 0) * 0.9 + (dy / distance) * strength
+    momentumX: (sprite.momentumX || 0) * 0.95 + (dx / distance) * strength,
+    momentumY: (sprite.momentumY || 0) * 0.95 + (dy / distance) * strength
   };
 }
 
