@@ -141,23 +141,33 @@ async function generateDialogue(sprite1, sprite2) {
      Keep responses brief and natural.`;
 }
 
-  try {
-    const completion = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 75,
-        temperature: 0.8,
-    });
-    return {
-        speaker: sprite1.id,
-        listener: sprite2.id,
-        content: completion.choices[0].message.content,
-        timestamp: Date.now()
-    };
-  } catch (error) {
-    console.error('Dialogue generation error:', error);
-    return null;
-  }
+try {
+  const completion = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 75,
+      temperature: 0.8,
+  });
+
+  // Clean up the response content
+  let content = completion.choices[0].message.content;
+  content = content
+      .split('\n')[0]  // Take only first line
+      .replace(/^[^:]*:\s*/, '')  // Remove "Name:" prefix
+      .replace(/\s+[^:]*:.*$/, '') // Remove any replies
+      .replace(/^["']|["']$/g, '') // Remove surrounding quotes
+      .trim();
+
+  return {
+      speaker: sprite1.id,
+      listener: sprite2.id,
+      content: content,
+      timestamp: Date.now()
+  };
+} catch (error) {
+  console.error('Dialogue generation error:', error);
+  return null;
+}
 }
 
 export default async function handler(request) {
