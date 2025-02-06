@@ -44,13 +44,20 @@ export default async function handler(req) {
    }
 
    await kv.set('gameState', gameState);
-   return new Response(JSON.stringify(gameState.votes), {
-     headers: { 'Content-Type': 'application/json' },
-   });
- } catch (error) {
-   console.error('Error processing vote:', error);
-   return new Response('Error processing vote', { status: 500 });
+return new Response(JSON.stringify(gameState.votes), {
+ headers: { 
+   'Content-Type': 'application/json',
+   'Access-Control-Allow-Origin': '*'
  }
+});
+} catch (error) {
+ console.error('Error processing vote:', error);
+ return new Response('Error processing vote', { 
+   status: 500,
+   headers: {
+     'Access-Control-Allow-Origin': '*'
+   }
+ });
 }
 
 async function concludeVoting(gameState) {
