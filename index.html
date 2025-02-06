@@ -967,6 +967,7 @@ async function initGame() {
         function updateGameState(newState) {
     const oldState = gameState;
     gameState = newState;
+    console.log("Full gameState:", gameState);
     updateVotingDisplay();
     
     // Check for new conversations with more detailed logging
@@ -1126,9 +1127,18 @@ function moveMap(direction) {
 }
 
 function updateVotingDisplay() {
-    console.log("Voting state:", gameState?.votes, gameState?.activeVoting);
+    console.log("Starting updateVotingDisplay");
+    console.log("Voting state:", {
+        votes: gameState?.votes,
+        activeVoting: gameState?.activeVoting,
+        voteEndTime: gameState?.voteEndTime
+    });
+    
     const votingContent = document.getElementById('voting-content');
+    console.log("Found voting-content element:", Boolean(votingContent));
+    
     if (gameState && gameState.activeVoting) {
+        console.log("Rendering voting options");
         const timeLeft = Math.max(0, gameState.voteEndTime - Date.now());
         const hoursLeft = Math.floor(timeLeft / (60 * 60 * 1000));
         
@@ -1141,6 +1151,11 @@ function updateVotingDisplay() {
                 </div>
             `).join('')}
         `;
+    } else {
+        console.log("Not rendering voting options because:", {
+            hasGameState: Boolean(gameState),
+            activeVoting: gameState?.activeVoting
+        });
     }
 }
 function showSpeechBubble(spriteId, text) {
