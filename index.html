@@ -1100,14 +1100,22 @@ function showThought(spriteId, thought) {
             
             return !isWater && !isDarkGreen;
         }
-
         function toggleAudio() {
-    if (!player) return;
+    if (!player || typeof player.getPlayerState !== 'function') {
+        console.log("YouTube player not ready yet");
+        return;
+    }
     
-    if (player.getPlayerState() !== 1) {  // 1 means playing
-        player.playVideo();
-    } else {
-        player.pauseVideo();
+    try {
+        if (player.getPlayerState() !== 1) {  // 1 means playing
+            player.playVideo();
+            document.getElementById('audioControl').classList.add('playing');
+        } else {
+            player.pauseVideo();
+            document.getElementById('audioControl').classList.remove('playing');
+        }
+    } catch (error) {
+        console.error("Error toggling audio:", error);
     }
 }
 
