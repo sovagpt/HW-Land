@@ -46,6 +46,15 @@
 .social-button:hover {
     transform: scale(1.1);
 }
+#audioControl.playing {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
 .thought-history {
     position: fixed;
     right: 20px;
@@ -587,7 +596,11 @@ window.addEventListener('load', async () => {
         <a href="https://pump.fun/board" target="_blank">
             <img src="https://cdn.prod.website-files.com/674396c59212c6ea348b24e0/67a1585e15e9c48b6e64f0c3_pumpfun.png" alt="Pump.fun" class="social-button">
         </a>
-    </div>`;
+        <img src="https://cdn.prod.website-files.com/674396c59212c6ea348b24e0/67a40b4bb67426bb70117adc_Spotify.png" alt="Play RPG Music" class="social-button" id="audioControl" onclick="toggleAudio()">
+    </div>
+    <audio id="bgMusic" loop>
+        <source src="/audio/rpg_towns_villages.mp3" type="audio/mp3">
+    </audio>`;
 document.body.insertAdjacentHTML('beforeend', socialButtons);
 
     container.addEventListener('scroll', () => {
@@ -1156,6 +1169,18 @@ function updateVotingDisplay() {
             hasGameState: Boolean(gameState),
             activeVoting: gameState?.activeVoting
         });
+    }
+}
+function toggleAudio() {
+    const audio = document.getElementById('bgMusic');
+    const button = document.getElementById('audioControl');
+    
+    if (audio.paused) {
+        audio.play();
+        button.classList.add('playing');
+    } else {
+        audio.pause();
+        button.classList.remove('playing');
     }
 }
 function showSpeechBubble(spriteId, text) {
