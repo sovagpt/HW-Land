@@ -168,6 +168,7 @@
     border-radius: 8px;
     box-shadow: 0 0 20px rgba(139, 69, 19, 0.3);
     text-align: center;
+    min-width: 500px; /* Add this */
 }
 
 .character-sprite {
@@ -888,7 +889,7 @@ document.body.insertAdjacentHTML('beforeend', socialButtons);
                 currentText += loadingSteps[currentStep][stepIndex];
                 textElement.innerHTML = currentText;
                 stepIndex++;
-                setTimeout(typeWriter, 50);
+                setTimeout(typeWriter, 10);
             } else {
                 // Step complete
                 const progress = ((currentStep + 1) / loadingSteps.length) * 100;
@@ -898,13 +899,13 @@ document.body.insertAdjacentHTML('beforeend', socialButtons);
                 stepIndex = 0;
                 currentText = '';
                 if (currentStep < loadingSteps.length) {
-                    setTimeout(typeWriter, 1000);
+                    setTimeout(typeWriter, 200);
                 } else {
                     // Loading complete
                     setTimeout(() => {
                         clearInterval(characterAnimation);
                         document.getElementById('loadingScreen').style.display = 'none';
-                    }, 1000);
+                    }, 200);
                 }
             }
         }
