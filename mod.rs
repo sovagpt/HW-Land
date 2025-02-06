@@ -1,34 +1,30 @@
-use std::sync::Arc;
-use tokio::sync::RwLock;
+pub mod npc;
+pub mod environment;
 
-pub mod simulation;
-pub mod interaction;
-pub mod behavior;
-pub mod physics;
-pub mod systems;
+use uuid::Uuid;
+use serde::{Serialize, Deserialize};
 
-pub struct Engine {
-    world: Arc<RwLock<World>>,
-    event_manager: EventManager,
-    time_manager: TimeManager,
-    scheduler: Scheduler,
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Entity {
+    pub id: Uuid,
+    pub entity_type: EntityType,
+    pub position: Vector2,
+    pub active: bool,
 }
 
-impl Engine {
-    pub fn new() -> Self {
-        Self {
-            world: Arc::new(RwLock::new(World::default())),
-            event_manager: EventManager::new(),
-            time_manager: TimeManager::new(),
-            scheduler: Scheduler::new(),
-        }
-    }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum EntityType {
+    NPC(npc::NPCType),
+    Environment(environment::EnvironmentType),
+}
 
-    pub async fn update(&mut self, delta_time: f32) {
-        self.time_manager.update(delta_time);
-        self.scheduler.update(delta_time);
-        
-        let mut world = self.world.write().await;
-        world.update(delta_time);
+impl Entity {
+    pub fn new(entity_type: EntityType, position: Vector2) -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            entity_type,
+            position,
+            active: true,
+        }
     }
 }
