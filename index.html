@@ -682,23 +682,6 @@
     worldMap.src = `${window.location.origin}/maps/world.png`;
 }
 
-function onPlayerReady(event) {
-    console.log("YouTube player ready");
-    isYouTubeReady = true;
-    isYTAPILoaded = true;
-    player = event.target;
-    console.log("Player fully initialized and ready");
-}
-
-function onPlayerStateChange(event) {
-    const button = document.getElementById('audioControl');
-    if (event.data === YT.PlayerState.PLAYING) {
-        button.classList.add('playing');
-    } else {
-        button.classList.remove('playing');
-    }
-}
-
 window.addEventListener('load', async () => {
     loadYouTubeAPI();
     log('Checking static files...');
@@ -847,6 +830,23 @@ function onYouTubeIframeAPIReady() {
             'onError': (event) => console.error("YouTube player error:", event)
         }
     });
+}
+
+function onPlayerReady(event) {
+    console.log("YouTube player ready");
+    isYouTubeReady = true;
+    isYTAPILoaded = true;
+    player = event.target;
+    console.log("Player fully initialized and ready");
+}
+
+function onPlayerStateChange(event) {
+    const button = document.getElementById('audioControl');
+    if (event.data === YT.PlayerState.PLAYING) {
+        button.classList.add('playing');
+    } else {
+        button.classList.remove('playing');
+    }
 }
 
 async function loadPreviousThoughts() {
