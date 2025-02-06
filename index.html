@@ -591,6 +591,7 @@
     </style>
 </head>
 <body>
+    <div id="youtubePlayer" style="display: none;"></div>
     <div id="gameContainer">
         <canvas id="mapCanvas" class="game-layer"></canvas>
         <div id="spriteLayer"></div>
@@ -760,7 +761,6 @@ window.addEventListener('load', async () => {
         </a>
         <img src="https://cdn.prod.website-files.com/674396c59212c6ea348b24e0/67a40b4bb67426bb70117adc_Spotify.png" alt="Play RPG Music" class="social-button" id="audioControl" onclick="toggleAudio()">
     </div>
-    <div id="youtubePlayer" style="display: none;"></div>
     <div class="tutorial-button">
         <img src="https://cdn.prod.website-files.com/674396c59212c6ea348b24e0/67a412a34f41ede0e2618fe0_tutorial.png" alt="Tutorial" class="social-button" onclick="toggleTutorial()">
     </div>`;
@@ -799,9 +799,11 @@ document.body.insertAdjacentHTML('beforeend', socialButtons);
 }
 
 function loadYouTubeAPI() {
+    console.log("Starting YouTube API load...");
     const tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
     tag.onerror = () => console.error("Failed to load YouTube API");
+    tag.onload = () => console.log("YouTube API script loaded");
     const firstScriptTag = document.getElementsByTagName('script')[0];
     firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 }
@@ -1283,10 +1285,11 @@ function showThought(spriteId, thought) {
         }
 
         function toggleAudio() {
-    console.log("Audio toggle state:", {
+    console.log("Toggle audio called with state:", {
         apiLoaded: isYTAPILoaded,
         playerReady: isYouTubeReady,
-        playerExists: !!player
+        playerExists: !!player,
+        playerState: player ? player.getPlayerState() : 'no player'
     });
     
     if (!isYTAPILoaded) {
@@ -1301,7 +1304,10 @@ function showThought(spriteId, thought) {
     
     try {
         const button = document.getElementById('audioControl');
-        if (player.getPlayerState() !== 1) {  // 1 means playing
+        const currentState = player.getPlayerState();
+        console.log("Current player state:", currentState);
+        
+        if (currentState !== 1) {  // 1 means playing
             player.playVideo();
             button.classList.add('playing');
         } else {
