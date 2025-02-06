@@ -96,8 +96,8 @@
 }
 
 .character-slot {
-    width: 48px;
-    height: 72px; /* Increased from 64px */
+    width: 64px;
+    height: 96px;
     background: #3c3c3c;
     border: 2px solid #595959;
     cursor: pointer;
@@ -106,7 +106,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 4px;
+    padding: 8px;
+    padding-bottom: 16px;
 }
 
 .character-slot:hover {
@@ -118,10 +119,11 @@
 }
 
 .character-sprite {
-    width: 32px;
-    height: 32px;
-    background-size: 928px 256px;
+    width: 48px;
+    height: 48px;
+    background-size: 1392px 384px;
     image-rendering: pixelated;
+    margin-bottom: 4px;
 }
 
 .character-name {
