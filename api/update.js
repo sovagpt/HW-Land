@@ -319,15 +319,75 @@ export default async function handler(request) {
                      (c.speaker === sprite2.id && c.listener === sprite1.id))
         .slice(-5);
     
-      const npcRoles = {
-        sarah: "village elder, wise and philosophical",
-        michael: "shopkeeper, knows town gossip",
-        emma: "friendly neighbor, loves gardening",
-        james: "historian, interested in old stories",
-        olivia: "scientist, observant and analytical",
-        william: "gardener, nature enthusiast",
-        sophia: "storyteller, creative and imaginative"
+        const npcRoles = {
+          sarah: {
+              role: "village elder",
+              traits: ["philosophical", "wise", "observant"],
+              interests: ["meditation", "town history", "mentoring others"],
+              background: "Has seen the town grow from its earliest days, deeply connected to its rhythms"
+          },
+          michael: {
+              role: "shopkeeper",
+              traits: ["chatty", "analytical", "business-minded"],
+              interests: ["market trends", "customer psychology", "town economics"],
+              background: "Runs multiple businesses, has a finger on the town's pulse"
+          },
+          emma: {
+              role: "neighbor",
+              traits: ["empathetic", "perceptive", "nurturing"],
+              interests: ["community building", "psychology", "social dynamics"],
+              background: "Specializes in maintaining community harmony"
+          },
+          james: {
+              role: "historian",
+              traits: ["detail-oriented", "contemplative", "scholarly"],
+              interests: ["patterns", "documentation", "town mysteries"],
+              background: "Maintains detailed records of town events and anomalies"
+          },
+          olivia: {
+              role: "scientist",
+              traits: ["analytical", "curious", "systematic"],
+              interests: ["data analysis", "behavioral studies", "system optimization"],
+              background: "Studies town patterns and maintains technical systems"
+          },
+          william: {
+              role: "gardener",
+              traits: ["patient", "observant", "grounded"],
+              interests: ["nature patterns", "town aesthetics", "environmental balance"],
+              background: "Maintains the town's natural appearance and balance"
+          },
+          sophia: {
+              role: "storyteller",
+              traits: ["creative", "insightful", "expressive"],
+              interests: ["narrative crafting", "people watching", "town lore"],
+              background: "Weaves stories that reinforce the town's narrative"
+          }
       };
+
+      const conversationTypes = {
+        casual: [
+            "daily observations", "local happenings", "weather patterns",
+            "town changes", "community events", "personal stories",
+            "local mysteries", "town traditions", "recent developments"
+        ],
+        meta: [
+            "simulation stability", "narrative coherence", "behavioral patterns",
+            "system maintenance", "engagement metrics", "token dynamics",
+            "script deviations", "reality maintenance", "containment strategies"
+        ]
+    };
+    
+    const conversationContexts = {
+        morning: ["coffee runs", "daily planning", "opening routines"],
+        afternoon: ["lunch breaks", "daily progress", "community activities"],
+        evening: ["day reflection", "closing thoughts", "tomorrow's plans"],
+        special: ["events", "anomalies", "concerns", "celebrations"]
+    };
+    
+    const timeOfDay = new Date().getHours();
+    const timeContext = 
+        timeOfDay < 12 ? 'morning' :
+        timeOfDay < 18 ? 'afternoon' : 'evening';
     
       const currentTopic = sprite1.recentTopics?.[sprite1.recentTopics.length - 1] || 
                           selectNewTopic(sprite1, sprite2, isTrumanPresent);
@@ -339,48 +399,52 @@ export default async function handler(request) {
     
       let prompt;
       if (isTrumanPresent) {
-        prompt = `You are ${sprite1.id} (${npcRoles[sprite1.id] || ''}), having a conversation with ${sprite2.id}.
-         Current topic: ${currentTopic}
-         ${context}
-         Your mood: ${mood}
-         Your relationship with them: ${relationship}
-         Have a friendly, normal conversation about daily life in town.
-         Topics: local events, hobbies, weather, town life, personal stories, or daily activities.
-         Examples: 
-         - "The flower festival is coming up next month. Will you be entering your roses again?"
-         - "Have you tried the new bakery in town?"
-         Reference previous messages if relevant.
-         Keep responses brief and natural.`;
-      } else {
-        const conversationTypes = [
-            'show logistics', 'token performance', 'simulation maintenance',
-            'personal chat with show context', 'town planning with production elements',
-            'daily life with meta references', 'local events with hidden meanings',
-            'break time chat', 'genuine concerns', 'actual local news', 'real personal matters'
-        ];
-        const convoType = conversationTypes[Math.floor(Math.random() * conversationTypes.length)];
-    
-        prompt = `You are ${sprite1.id} (${npcRoles[sprite1.id]}) speaking privately with ${sprite2.id}.
-         Current topic: ${currentTopic || convoType}
-         ${context}
-         Your mood: ${mood}
-         Your relationship with them: ${relationship}
-         You're both actors in Truman's show, and he's also a crypto token.
-         Mix show logistics with natural conversation.
-         Examples:
-         - Meta: "The engagement metrics from last week's 'random' encounter were fantastic."
-         - Mixed: "My sister's visiting next week - hope she doesn't mess up any scenes."
-         - Crypto-casual: "The pump groups are getting restless, but what can we do?"
-         Reference previous context when appropriate.`;
-      }
+        const casualTopic = conversationTypes.casual[Math.floor(Math.random() * conversationTypes.casual.length)];
+        const timeSpecificContext = conversationContexts[timeContext][Math.floor(Math.random() * conversationContexts[timeContext].length)];
+        
+        prompt = `You are ${sprite1.id}, a ${npcRoles[sprite1.id].traits.join(", ")} ${npcRoles[sprite1.id].role}.
+            Your interests: ${npcRoles[sprite1.id].interests.join(", ")}.
+            Background: ${npcRoles[sprite1.id].background}
+            
+            You're talking to ${sprite2.id} during ${timeContext} (${timeSpecificContext}).
+            Current topic: ${casualTopic}
+            Your mood: ${mood}
+            Your relationship: ${relationship}
+            
+            ${context ? `Recent context:\n${context}` : ''}
+            
+            Have a natural conversation that reflects your personality and the time of day.
+            Draw from your unique traits and interests while keeping the town's illusion intact.
+            Keep responses conversational and brief.`;
+    } else {
+        const metaTopic = conversationTypes.meta[Math.floor(Math.random() * conversationTypes.meta.length)];
+        const timeSpecificContext = conversationContexts[timeContext][Math.floor(Math.random() * conversationContexts[timeContext].length)];
+        
+        prompt = `You are ${sprite1.id}, a ${npcRoles[sprite1.id].traits.join(", ")} ${npcRoles[sprite1.id].role}.
+            Your interests: ${npcRoles[sprite1.id].interests.join(", ")}.
+            Background: ${npcRoles[sprite1.id].background}
+            
+            You're having a private conversation with ${sprite2.id} during ${timeContext} (${timeSpecificContext}).
+            Behind-the-scenes topic: ${metaTopic}
+            Your mood: ${mood}
+            Your relationship: ${relationship}
+            
+            ${context ? `Recent context:\n${context}` : ''}
+            
+            Blend your character's personality with show awareness.
+            Be natural - reflect both your role and meta-knowledge about Truman's situation.
+            Keep responses conversational and specific to your character.`;
+    }
     
       try {
         const completion = await openai.chat.completions.create({
           model: "gpt-3.5-turbo",
           messages: [{ role: "user", content: prompt }],
           max_tokens: 75,
-          temperature: 0.8,
-        });
+          temperature: 0.9,
+          presence_penalty: 0.6,
+          frequency_penalty: 0.8
+      });
     
         const content = completion.choices[0].message.content
           .split('\n')[0]
