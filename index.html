@@ -146,6 +146,60 @@
     border-radius: 4px;
 }
 
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    font-family: 'Press Start 2P', monospace;
+}
+
+.loading-content {
+    background: #f5e6d3;
+    padding: 40px;
+    border: 8px solid #8b4513;
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(139, 69, 19, 0.3);
+    text-align: center;
+}
+
+.character-sprite {
+    width: 32px;
+    height: 32px;
+    background-image: url('/sprites/TrumanSprite.png');
+    background-size: 928px 256px;
+    image-rendering: pixelated;
+    margin: 0 auto 40px auto;
+}
+
+.progress-bar {
+    width: 300px;
+    height: 20px;
+    background: #333;
+    border: 4px solid #8b4513;
+    margin: 20px 0;
+}
+
+.progress-fill {
+    width: 0%;
+    height: 100%;
+    background: #8b0000;
+    transition: width 0.3s ease;
+}
+
+.loading-text {
+    color: #8b0000;
+    min-height: 80px;
+    margin: 20px 0;
+}
+
 .social-button {
     width: 40px;
     height: 40px;
@@ -591,6 +645,15 @@
     </style>
 </head>
 <body>
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-content">
+            <div class="character-sprite" id="loadingCharacter"></div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="loading-text" id="loadingText"></div>
+        </div>
+    </div>
     <div id="youtubePlayer" style="display: none;"></div>
     <div id="gameContainer">
         <canvas id="mapCanvas" class="game-layer"></canvas>
@@ -684,6 +747,7 @@
 }
 
 window.addEventListener('load', async () => {
+    initLoadingScreen();
     loadYouTubeAPI();
     log('Checking static files...');
     
@@ -791,6 +855,64 @@ document.body.insertAdjacentHTML('beforeend', socialButtons);
         let isYTAPILoaded = false;
         let isYouTubeReady = false;
         const displayedThoughts = new Set();
+
+        function initLoadingScreen() {
+    const loadingSteps = [
+        "Initializing simulation...",
+        "Loading NPCs...",
+        "Establishing consciousness patterns...",
+        "Preparing Truman's world...",
+        "Reality check complete."
+    ];
+    
+    let currentStep = 0;
+    let currentText = '';
+    let stepIndex = 0;
+    
+    // Character animation
+    const character = document.getElementById('loadingCharacter');
+    let frame = 0;
+    const characterAnimation = setInterval(() => {
+        const x = -((frame % 4) * 32);
+        character.style.backgroundPosition = `${x}px 0px`;
+        frame++;
+    }, 150);
+
+    // Typewriter effect
+    function typeWriter() {
+        const textElement = document.getElementById('loadingText');
+        const progressFill = document.getElementById('progressFill');
+        
+        if (currentStep < loadingSteps.length) {
+            if (stepIndex < loadingSteps[currentStep].length) {
+                currentText += loadingSteps[currentStep][stepIndex];
+                textElement.innerHTML = currentText;
+                stepIndex++;
+                setTimeout(typeWriter, 50);
+            } else {
+                // Step complete
+                const progress = ((currentStep + 1) / loadingSteps.length) * 100;
+                progressFill.style.width = `${progress}%`;
+                
+                currentStep++;
+                stepIndex = 0;
+                currentText = '';
+                if (currentStep < loadingSteps.length) {
+                    setTimeout(typeWriter, 1000);
+                } else {
+                    // Loading complete
+                    setTimeout(() => {
+                        clearInterval(characterAnimation);
+                        document.getElementById('loadingScreen').style.display = 'none';
+                    }, 1000);
+                }
+            }
+        }
+    }
+
+    // Start the animation
+    typeWriter();
+}
 
         function log(message) {
     // Only log to console for debugging
