@@ -60,6 +60,47 @@
     overflow-y: auto;
 }
 
+.character-bar {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid #8b4513;
+    z-index: 2000;
+}
+
+.character-slot {
+    width: 48px;
+    height: 48px;
+    background: #3c3c3c;
+    border: 2px solid #595959;
+    cursor: pointer;
+    image-rendering: pixelated;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.character-slot:hover {
+    border-color: #8b4513;
+}
+
+.character-slot.selected {
+    border-color: #ffd700;
+}
+
+.character-sprite {
+    width: 32px;
+    height: 32px;
+    background-size: 928px 256px;
+    image-rendering: pixelated;
+}
+
 .tutorial-section {
     background: #f5e6d3;
     padding: 20px;
@@ -1310,6 +1351,38 @@ function moveMap(direction) {
     }
 }
 
+function focusCharacter(characterId) {
+    // Remove selected class from all slots
+    document.querySelectorAll('.character-slot').forEach(slot => {
+        slot.classList.remove('selected');
+    });
+    
+    // Add selected class to clicked slot
+    document.querySelector(`[data-character="${characterId}"]`).classList.add('selected');
+    
+    // Find the character sprite in the game
+    const sprite = document.querySelector(`[data-id="${characterId}"]`);
+    if (sprite) {
+        // Get sprite position
+        const x = parseInt(sprite.style.left);
+        const y = parseInt(sprite.style.top);
+        
+        // Get container
+        const container = document.getElementById('gameContainer');
+        
+        // Calculate center position
+        const centerX = x - (container.clientWidth / 2);
+        const centerY = y - (container.clientHeight / 2);
+        
+        // Smooth scroll to character
+        container.scrollTo({
+            left: centerX,
+            top: centerY,
+            behavior: 'smooth'
+        });
+    }
+}
+
 function updateVotingDisplay() {
     console.log("Starting updateVotingDisplay");
     console.log("Voting state:", {
@@ -1408,5 +1481,31 @@ function showSpeechBubble(spriteId, text) {
     }, 4000);
 }
     </script>
+    <div class="character-bar">
+        <div class="character-slot" data-character="truman" onclick="focusCharacter('truman')">
+            <div class="character-sprite" style="background-image: url('/sprites/TrumanSprite.png')"></div>
+        </div>
+        <div class="character-slot" data-character="sarah" onclick="focusCharacter('sarah')">
+            <div class="character-sprite" style="background-image: url('/sprites/SarahSprite.png')"></div>
+        </div>
+        <div class="character-slot" data-character="michael" onclick="focusCharacter('michael')">
+            <div class="character-sprite" style="background-image: url('/sprites/MichaelSprite.png')"></div>
+        </div>
+        <div class="character-slot" data-character="emma" onclick="focusCharacter('emma')">
+            <div class="character-sprite" style="background-image: url('/sprites/EmmaSprite.png')"></div>
+        </div>
+        <div class="character-slot" data-character="james" onclick="focusCharacter('james')">
+            <div class="character-sprite" style="background-image: url('/sprites/JamesSprite.png')"></div>
+        </div>
+        <div class="character-slot" data-character="olivia" onclick="focusCharacter('olivia')">
+            <div class="character-sprite" style="background-image: url('/sprites/OliviaSprite.png')"></div>
+        </div>
+        <div class="character-slot" data-character="william" onclick="focusCharacter('william')">
+            <div class="character-sprite" style="background-image: url('/sprites/WilliamSprite.png')"></div>
+        </div>
+        <div class="character-slot" data-character="sophia" onclick="focusCharacter('sophia')">
+            <div class="character-sprite" style="background-image: url('/sprites/SophiaSprite.png')"></div>
+        </div>
+    </div>
 </body>
 </html>
