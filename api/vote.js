@@ -30,7 +30,7 @@ async function concludeVoting(gameState) {
   const trumanSprite = gameState.sprites.find(s => s.isUnaware);
   if (trumanSprite) {
     try {
-      const prompt = `You are an AI living in what seems to be a perfect town. This just happened: ${winningOption}. Express your confusion and suspicion while remaining somewhat trusting. Respond in first person, max 50 words.`;
+      const prompt = `You live in HelloWorld town. Write a personal diary thought about ${winningOption}. Share something that strikes you as strange about the town or its people, but try to rationalize it in a natural way. Focus on small oddities that make you question things.`;
       
       const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
