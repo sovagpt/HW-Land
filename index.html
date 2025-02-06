@@ -1412,9 +1412,9 @@ function updateVotingDisplay() {
         votingContent.innerHTML = `
             <div style="margin-bottom: 10px">Time left: ${hoursLeft}h</div>
             ${Object.entries(gameState.votes).map(([option, count]) => `
-                <div style="margin: 5px 0">
+                <div style="margin: 5px 0; text-align: center;">
                     <button onclick="vote('${option}')" class="vote-btn">${option}</button>
-                    <span>${count || 0} votes</span>
+                    <div style="margin-top: 5px;">${count || 0} votes</div>
                 </div>
             `).join('')}
         `;
