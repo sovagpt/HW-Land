@@ -75,15 +75,16 @@
 
 .character-slot {
     width: 48px;
-    height: 48px;
+    height: 64px; /* Made taller to accommodate name */
     background: #3c3c3c;
     border: 2px solid #595959;
     cursor: pointer;
     image-rendering: pixelated;
     position: relative;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
+    padding: 4px;
 }
 
 .character-slot:hover {
@@ -99,6 +100,15 @@
     height: 32px;
     background-size: 928px 256px;
     image-rendering: pixelated;
+}
+
+.character-name {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    color: white;
+    text-align: center;
+    margin-top: 4px;
+    text-shadow: 1px 1px 0 #000;
 }
 
 .tutorial-section {
@@ -1484,27 +1494,35 @@ function showSpeechBubble(spriteId, text) {
     <div class="character-bar">
         <div class="character-slot" data-character="truman" onclick="focusCharacter('truman')">
             <div class="character-sprite" style="background-image: url('/sprites/TrumanSprite.png')"></div>
+            <div class="character-name">TRUMAN</div>
         </div>
         <div class="character-slot" data-character="sarah" onclick="focusCharacter('sarah')">
             <div class="character-sprite" style="background-image: url('/sprites/SarahSprite.png')"></div>
+            <div class="character-name">SARAH</div>
         </div>
         <div class="character-slot" data-character="michael" onclick="focusCharacter('michael')">
             <div class="character-sprite" style="background-image: url('/sprites/MichaelSprite.png')"></div>
+            <div class="character-name">MICHAEL</div>
         </div>
         <div class="character-slot" data-character="emma" onclick="focusCharacter('emma')">
             <div class="character-sprite" style="background-image: url('/sprites/EmmaSprite.png')"></div>
+            <div class="character-name">EMMA</div>
         </div>
         <div class="character-slot" data-character="james" onclick="focusCharacter('james')">
             <div class="character-sprite" style="background-image: url('/sprites/JamesSprite.png')"></div>
+            <div class="character-name">JAMES</div>
         </div>
         <div class="character-slot" data-character="olivia" onclick="focusCharacter('olivia')">
             <div class="character-sprite" style="background-image: url('/sprites/OliviaSprite.png')"></div>
+            <div class="character-name">OLIVIA</div>
         </div>
         <div class="character-slot" data-character="william" onclick="focusCharacter('william')">
             <div class="character-sprite" style="background-image: url('/sprites/WilliamSprite.png')"></div>
+            <div class="character-name">WILLIAM</div>
         </div>
         <div class="character-slot" data-character="sophia" onclick="focusCharacter('sophia')">
             <div class="character-sprite" style="background-image: url('/sprites/SophiaSprite.png')"></div>
+            <div class="character-name">SOPHIA</div>
         </div>
     </div>
 </body>
