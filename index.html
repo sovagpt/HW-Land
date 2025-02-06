@@ -520,6 +520,44 @@
     worldMap.src = `${window.location.origin}/maps/world.png`;
 }
 
+const tag = document.createElement('script');
+tag.src = "https://www.youtube.com/iframe_api";
+const firstScriptTag = document.getElementsByTagName('script')[0];
+firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+// Initialize YouTube player
+let player;
+function onYouTubeIframeAPIReady() {
+    player = new YT.Player('youtubePlayer', {
+        height: '0',
+        width: '0',
+        videoId: 'xu2pESvXcmM',  // RPG Towns Music video ID
+        playerVars: {
+            'autoplay': 0,
+            'controls': 0,
+            'loop': 1,
+            'playlist': 'xu2pESvXcmM'  // Required for looping
+        },
+        events: {
+            'onReady': onPlayerReady,
+            'onStateChange': onPlayerStateChange
+        }
+    });
+}
+
+function onPlayerReady(event) {
+    console.log("YouTube player ready");
+}
+
+function onPlayerStateChange(event) {
+    const button = document.getElementById('audioControl');
+    if (event.data === YT.PlayerState.PLAYING) {
+        button.classList.add('playing');
+    } else {
+        button.classList.remove('playing');
+    }
+}
+
 window.addEventListener('load', async () => {
     // First part - file checking
     log('Checking static files...');
@@ -598,9 +636,7 @@ window.addEventListener('load', async () => {
         </a>
         <img src="https://cdn.prod.website-files.com/674396c59212c6ea348b24e0/67a40b4bb67426bb70117adc_Spotify.png" alt="Play RPG Music" class="social-button" id="audioControl" onclick="toggleAudio()">
     </div>
-    <audio id="bgMusic" loop>
-        <source src="/audio/rpg_towns_villages.mp3" type="audio/mp3">
-    </audio>`;
+    <div id="youtubePlayer" style="display: none;"></div>`;
 document.body.insertAdjacentHTML('beforeend', socialButtons);
 
     container.addEventListener('scroll', () => {
@@ -1064,6 +1100,17 @@ function showThought(spriteId, thought) {
             
             return !isWater && !isDarkGreen;
         }
+
+        function toggleAudio() {
+    if (!player) return;
+    
+    if (player.getPlayerState() !== 1) {  // 1 means playing
+        player.playVideo();
+    } else {
+        player.pauseVideo();
+    }
+}
+
 
         function updateSprite(sprite, data) {
     // Get current position
