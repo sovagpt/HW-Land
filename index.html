@@ -1218,18 +1218,6 @@ function updateVotingDisplay() {
         });
     }
 }
-function toggleAudio() {
-    const audio = document.getElementById('bgMusic');
-    const button = document.getElementById('audioControl');
-    
-    if (audio.paused) {
-        audio.play();
-        button.classList.add('playing');
-    } else {
-        audio.pause();
-        button.classList.remove('playing');
-    }
-}
 function showSpeechBubble(spriteId, text) {
     console.log("Show speech bubble called for:", spriteId, text);
     
