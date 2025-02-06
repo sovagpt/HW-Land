@@ -1126,6 +1126,7 @@ function moveMap(direction) {
 }
 
 function updateVotingDisplay() {
+    console.log("Voting state:", gameState?.votes, gameState?.activeVoting);
     const votingContent = document.getElementById('voting-content');
     if (gameState && gameState.activeVoting) {
         const timeLeft = Math.max(0, gameState.voteEndTime - Date.now());
