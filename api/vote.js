@@ -2,101 +2,102 @@ import { createClient } from '@vercel/kv';
 import OpenAI from 'openai';
 
 const kv = createClient({
- url: process.env.KV_REST_API_URL,
- token: process.env.KV_REST_API_TOKEN,
+  url: process.env.KV_REST_API_URL,
+  token: process.env.KV_REST_API_TOKEN,
 });
 
 const openai = new OpenAI({
- apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 export const config = {
- runtime: 'edge',
+  runtime: 'edge',
 };
 
-export default async function handler(req) {
- if (req.method !== 'POST') {
-   return new Response('Method not allowed', { status: 405 });
- }
- try {
-   const { option } = await req.json();
-   const gameState = await kv.get('gameState');
+async function concludeVoting(gameState) {
+  let maxVotes = 0;
+  let winningOption = null;
+  
+  Object.entries(gameState.votes).forEach(([option, votes]) => {
+    if (votes > maxVotes) {
+      maxVotes = votes;
+      winningOption = option;
+    }
+  });
 
-   if (!gameState.activeVoting || Date.now() > gameState.voteEndTime) {
-     // Reset voting
-     gameState.votes = {
-       "Deforest the eastern woods": 0,
-       "Start a fire downtown": 0,
-       "Give Truman internet access": 0,
-       "Remove an NPC permanently": 0
-     };
-     gameState.voteStartTime = Date.now();
-     gameState.voteEndTime = Date.now() + (24 * 60 * 60 * 1000);
-     gameState.activeVoting = true;
-   }
+  if (!winningOption) return null;
 
-   gameState.votes[option] = (gameState.votes[option] || 0) + 1;
-   
-   if (Object.values(gameState.votes).reduce((a, b) => a + b) >= 10) {
-     const winningEvent = await concludeVoting(gameState);
-     gameState.activeVoting = false;
-     gameState.currentEvent = winningEvent;
-   }
+  const trumanSprite = gameState.sprites.find(s => s.isUnaware);
+  if (trumanSprite) {
+    try {
+      const prompt = `You are an AI living in what seems to be a perfect town. This just happened: ${winningOption}. Express your confusion and suspicion while remaining somewhat trusting. Respond in first person, max 50 words.`;
+      
+      const completion = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 50,
+        temperature: 0.7,
+      });
 
-   await kv.set('gameState', gameState);
-return new Response(JSON.stringify(gameState.votes), {
- headers: { 
-   'Content-Type': 'application/json',
-   'Access-Control-Allow-Origin': '*'
- }
-});
-} catch (error) {
- console.error('Error processing vote:', error);
- return new Response('Error processing vote', { 
-   status: 500,
-   headers: {
-     'Access-Control-Allow-Origin': '*'
-   }
- });
+      const reaction = completion.choices[0].message.content;
+      trumanSprite.thoughts.push(reaction);
+      trumanSprite.memories.push(`Experienced: ${winningOption}`);
+      
+      gameState.thoughts.push({
+        spriteId: trumanSprite.id,
+        thought: reaction,
+        timestamp: Date.now()
+      });
+    } catch (error) {
+      console.error('Error generating reaction:', error);
+    }
+  }
+  return winningOption;
 }
 
-async function concludeVoting(gameState) {
- let maxVotes = 0;
- let winningOption = null;
- 
- Object.entries(gameState.votes).forEach(([option, votes]) => {
-   if (votes > maxVotes) {
-     maxVotes = votes;
-     winningOption = option;
-   }
- });
+export default async function handler(req) {
+  if (req.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405 });
+  }
+  try {
+    const { option } = await req.json();
+    const gameState = await kv.get('gameState');
 
- if (!winningOption) return null;
+    if (!gameState.activeVoting || Date.now() > gameState.voteEndTime) {
+      // Reset voting
+      gameState.votes = {
+        "Deforest the eastern woods": 0,
+        "Start a fire downtown": 0,
+        "Give Truman internet access": 0,
+        "Remove an NPC permanently": 0
+      };
+      gameState.voteStartTime = Date.now();
+      gameState.voteEndTime = Date.now() + (24 * 60 * 60 * 1000);
+      gameState.activeVoting = true;
+    }
 
- const trumanSprite = gameState.sprites.find(s => s.isUnaware);
- if (trumanSprite) {
-   try {
-     const prompt = `You are an AI living in what seems to be a perfect town. This just happened: ${winningOption}. Express your confusion and suspicion while remaining somewhat trusting. Respond in first person, max 50 words.`;
-     
-     const completion = await openai.chat.completions.create({
-       model: "gpt-3.5-turbo",
-       messages: [{ role: "user", content: prompt }],
-       max_tokens: 50,
-       temperature: 0.7,
-     });
+    gameState.votes[option] = (gameState.votes[option] || 0) + 1;
+    
+    if (Object.values(gameState.votes).reduce((a, b) => a + b) >= 10) {
+      const winningEvent = await concludeVoting(gameState);
+      gameState.activeVoting = false;
+      gameState.currentEvent = winningEvent;
+    }
 
-     const reaction = completion.choices[0].message.content;
-     trumanSprite.thoughts.push(reaction);
-     trumanSprite.memories.push(`Experienced: ${winningOption}`);
-     
-     gameState.thoughts.push({
-       spriteId: trumanSprite.id,
-       thought: reaction,
-       timestamp: Date.now()
-     });
-   } catch (error) {
-     console.error('Error generating reaction:', error);
-   }
- }
- return winningOption;
+    await kv.set('gameState', gameState);
+    return new Response(JSON.stringify(gameState.votes), {
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
+  } catch (error) {
+    console.error('Error processing vote:', error);
+    return new Response('Error processing vote', { 
+      status: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
+  }
 }
