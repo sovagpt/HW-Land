@@ -528,6 +528,7 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 // Initialize YouTube player
 let player;
 function onYouTubeIframeAPIReady() {
+    console.log("Creating YouTube player...");
     player = new YT.Player('youtubePlayer', {
         height: '0',
         width: '0',
@@ -547,6 +548,7 @@ function onYouTubeIframeAPIReady() {
 
 function onPlayerReady(event) {
     console.log("YouTube player ready");
+    isYouTubeReady = true;
 }
 
 function onPlayerStateChange(event) {
@@ -660,6 +662,7 @@ document.body.insertAdjacentHTML('beforeend', socialButtons);
         let sprites = new Map();
         let eventSource = null;
         let mapImage = new Image();
+        let isYouTubeReady = false;
         const displayedThoughts = new Set();
 
         function log(message) {
@@ -1101,8 +1104,8 @@ function showThought(spriteId, thought) {
             return !isWater && !isDarkGreen;
         }
         function toggleAudio() {
-    if (!player || typeof player.getPlayerState !== 'function') {
-        console.log("YouTube player not ready yet");
+    if (!player || !isYouTubeReady) {
+        console.log("YouTube player not ready yet - please wait a moment and try again");
         return;
     }
     
