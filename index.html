@@ -537,6 +537,10 @@
     background: #f5e6d3;
     padding: 20px;
     border-bottom: 4px solid #8b4513;  /* Wooden divider */
+    font-size: 10px;  /* Smaller font size for contract address */
+    font-family: monospace;  /* Monospace font for better readability */
+    word-break: break-all;  /* Break long addresses */
+    margin-top: 4px;
 }
 
 .terminal-section h2 {
@@ -692,7 +696,7 @@
         <div class="terminal-section">
             <h2>DAY TRACKER: Day 1</h2>
             <div>MCAP: PENDING...</div>
-            <div>CA: NOT LAUNCHED</div>
+            <div class="contract-address">CA: </div>
         </div>
         <div class="terminal-section">
             <h2>MAJOR EVENT VOTING</h2>
