@@ -1,7 +1,7 @@
 <div align="center">
-<img src="https://cdn.prod.website-files.com/674396c59212c6ea348b24e0/67a50f4b72d388d117c10c27_hello%20world.png" alt="HelloWorld Project Logo" width="800"/>
+<img src="/api/placeholder/800/400" alt="Truman Town Project Logo"/>
 
-# 🌐 Hello,World?: An AI-Driven Village Simulation
+# 🌐 Truman Town: An AI-Driven Village Simulation
 <p>Powered by Advanced AI Systems for Dynamic NPC Interactions</p>
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
@@ -9,64 +9,61 @@
 [![Bevy](https://img.shields.io/badge/Bevy-0.12-yellow)](https://bevyengine.org/)
 </div>
 
-## 🚀 What is HelloWorld?
-
-HelloWorld is a sophisticated AI village simulation that creates a living, breathing world of NPCs with varying levels of self-awareness. Inspired by "The Truman Show," some NPCs are aware they're in a simulation while one live their virtual lives unaware, creating unique and complex social dynamics.
+## 🚀 What is Truman Town?
+Truman Town is a sophisticated AI village simulation that creates a living, breathing world of NPCs with varying levels of self-awareness. Directly inspired by "The Truman Show," the simulation features a central unaware protagonist surrounded by AI-driven aware citizens, creating unique and complex social dynamics that explore the boundaries between reality and simulation.
 
 ### Key Features
-
-- 🧠 **Advanced AI Systems**: Complex personality and behavior patterns
-- 🤝 **Dynamic Social Interactions**: Realistic relationship and group dynamics
-- 💭 **Memory Systems**: Short and long-term memory with natural decay
-- 🎭 **Awareness Levels**: Mixed population of aware and unaware NPCs
-- 🗳️ **Community Influence**: User voting system for town events
+- 🧠 **Advanced AI Systems**: Complex personality and behavior patterns with special focus on maintaining the simulation's integrity
+- 🤝 **Dynamic Social Interactions**: Realistic relationship dynamics between aware and unaware residents
+- 💭 **Memory Systems**: Short and long-term memory with natural decay and scenario consistency
+- 🎭 **Protagonist System**: Specialized AI for the unaware central character
+- 🎬 **Director Mode**: Control and influence town events to create engaging scenarios
 
 ## 🛠️ Quick Start
 
 ### Prerequisites
-
 - Rust 1.70+
 - Cargo package manager
 - PostgreSQL database
 
 ### Installation
-
 ```bash
 # Install using cargo
-cargo install helloworld
+cargo install trumantown
 
 # Or build from source
-git clone https://github.com/devforsolana/helloworld.git
-cd helloworld
+git clone https://github.com/devforsolana/trumantown.git
+cd trumantown
 cargo build --release
 ```
 
 ### Basic Usage
-
 ```rust
-use helloworld::Town;
+use trumantown::Town;
 
 fn main() {
     let mut town = Town::new();
     
-    // Add NPCs with different awareness levels
-    town.add_npc(true);  // Aware NPC
-    town.add_npc(false); // Unaware NPC
+    // Initialize the protagonist
+    town.create_protagonist();
+    
+    // Add aware NPCs as town residents
+    town.add_aware_resident(ResidentType::Neighbor);
+    town.add_aware_resident(ResidentType::Shopkeeper);
     
     town.run();
 }
 ```
 
 ## 🧠 AI Systems
-
-- **Cognitive System**: Decision making and reasoning
-- **Memory System**: Experience storage and recall
-- **Social System**: Relationships and group dynamics
-- **Personality System**: Traits and behavior patterns
-- **Dialogue System**: Contextual conversations
+- **Protagonist AI**: Special system for the unaware central character
+- **Resident AI**: Advanced system for aware NPCs
+- **Director System**: Scenario creation and management
+- **Memory System**: Consistent experience storage and recall
+- **Social System**: Complex relationship dynamics
+- **Script System**: Contextual dialogue and scenario management
 
 ## ⚙️ Configuration
-
 ```rust
 let config = Config {
     simulation: SimulationConfig {
@@ -75,44 +72,49 @@ let config = Config {
         max_entities: 1000,
     },
     ai: AiConfig {
-        max_npcs: 20,
+        protagonist_awareness: 0.0,
+        resident_awareness: 1.0,
         memory_decay_rate: 0.1,
         interaction_radius: 50.0,
-        awareness_threshold: 0.8,
+        scenario_complexity: 0.8,
     },
 };
 ```
 
 ## 🎮 Controls
-
-- Left Click: Select NPC/Interact/Vote
-- MORE TO INTERACTIVITY TO COME (P2E)
+- Left Click: Select Resident/Interact
+- Right Click: Director Mode Options
+- Space: Pause/Resume Simulation
+- Tab: Switch Between Protagonist and Director Views
 
 ## 📊 Features
 
-### NPC Behaviors
+### Protagonist Experience
+- Naturalistic daily routines
+- Meaningful relationships
+- Career progression
+- Personal growth events
+- "Unscripted" adventures
 
-- Daily routines
-- Social interactions
-- Memory-based decisions
-- Emotional responses
-- Dynamic relationships
+### Resident Behaviors
+- Role maintenance
+- Scenario participation
+- Emergency handling
+- Relationship building
+- Background activities
 
 ### Town Events
-
-- Community voting
+- Scheduled scenarios
+- Spontaneous events
+- Community activities
+- Career opportunities
 - Social gatherings
-- Economic activities
-- Environmental changes
 
 ## 🤝 Contributing
-
 Contributions are welcome! Please check our [Contributing Guidelines](CONTRIBUTING.md) for details.
 
 ## 📝 License
-
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
 ## 📫 Contact
-
-For questions, issues, or contributions, please visit our [GitHub repository](https://github.com/devforsolana/helloworld).
+For questions, issues, or contributions, please visit our [GitHub repository](https://github.com/devforsolana/trumantown).
