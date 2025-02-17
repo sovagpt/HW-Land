@@ -1,5 +1,5 @@
 <div align="center">
-<img src="/api/placeholder/800/400" alt="Truman Town Project Logo"/>
+<img src="https://cdn.prod.website-files.com/6740d85c4e3daeef29a89470/67b387ef3a852cbd4180da68__cn9kq.gif" alt="Truman Town Project Logo"/>
 
 # 🌐 Truman Town: An AI-Driven Village Simulation
 <p>Powered by Advanced AI Systems for Dynamic NPC Interactions</p>
@@ -117,4 +117,4 @@ Contributions are welcome! Please check our [Contributing Guidelines](CONTRIBUTI
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
 ## 📫 Contact
-For questions, issues, or contributions, please visit our [GitHub repository](https://github.com/devforsolana/trumantown).
+For questions, issues, or contributions, please visit our [GitHub repository](https://github.com/sovagpt/trumantown).
