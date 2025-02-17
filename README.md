@@ -32,7 +32,7 @@ Truman Town is a sophisticated AI village simulation that creates a living, brea
 cargo install trumantown
 
 # Or build from source
-git clone https://github.com/devforsolana/trumantown.git
+git clone https://github.com/sovagpt/trumantown.git
 cd trumantown
 cargo build --release
 ```
