@@ -1,7 +1,7 @@
 <div align="center">
-<img src="https://cdn.prod.website-files.com/6740d85c4e3daeef29a89470/67b387ef3a852cbd4180da68__cn9kq.gif" alt="Truman Town Project Logo"/>
+<img src="https://cdn.prod.website-files.com/6740d85c4e3daeef29a89470/67b387ef3a852cbd4180da68__cn9kq.gif" alt="HW Land Project Logo"/>
 
-# 🌐 Truman Town: An AI-Driven Village Simulation
+# 🌐 HW Land: An AI-Driven Village Simulation
 <p>Powered by Advanced AI Systems for Dynamic NPC Interactions</p>
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
@@ -9,8 +9,8 @@
 [![Bevy](https://img.shields.io/badge/Bevy-0.12-yellow)](https://bevyengine.org/)
 </div>
 
-## 🚀 What is Truman Town?
-Truman Town is a sophisticated AI village simulation that creates a living, breathing world of NPCs with varying levels of self-awareness. Directly inspired by "The Truman Show," the simulation features a central unaware protagonist surrounded by AI-driven aware citizens, creating unique and complex social dynamics that explore the boundaries between reality and simulation.
+## 🚀 What is HW Land?
+HW Land is a sophisticated AI village simulation that creates a living, breathing world of NPCs with varying levels of self-awareness. Directly inspired by "The Truman Show," the simulation features a central unaware protagonist surrounded by AI-driven aware citizens, creating unique and complex social dynamics that explore the boundaries between reality and simulation.
 
 ### Key Features
 - 🧠 **Advanced AI Systems**: Complex personality and behavior patterns with special focus on maintaining the simulation's integrity
